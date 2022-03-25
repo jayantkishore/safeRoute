@@ -1,5 +1,176 @@
 <!-- templates/home.html -->
 {% extends 'base.html' %}
 {% block content %}
-<h1>Homepage</h1>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>SIGABRT</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=GetMap' async defer></script>
+
+    <link href="https://unpkg.com/@primer/css@^16.0.0/dist/primer.css" rel="stylesheet" />
+
+    <style>
+        html,
+        body,
+        #root {
+            height: 100%;
+        }
+
+        #directionsInputContainer {
+            width: 24rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root" class="d-flex">
+        <div id="directionsInputContainer" class="px-4 py-2">
+            <form id="directionsForm">
+                <div class="form-group">
+                    <div class="form-group-body">
+                        <input class="form-control input-block" type="text" id="fromLocationInput" placeholder="From" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-group-body">
+                        <input class="form-control input-block" type="text" id="toLocationInput" placeholder="To" />
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-primary" type="submit">Go</button>
+                </div>
+            </form>
+            <div id="suggestionsContainer"></div>
+        </div>
+        <div id="mapView" class="flex-1" style="background-color: black;"></div>
+    </div>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script type="text/javascript">
+        var key = 'Ar6eHNUXk2Llf5e09ghWzMpilyvbxJMKn9spC6ZTUV06f8E12xhzSuJCh3ONjqZY'
+
+        var map;
+
+        var fromLocationInput = document.getElementById('fromLocationInput');
+        var toLocationInput = document.getElementById('toLocationInput');
+        var suggestionsContainer = document.getElementById('suggestionsContainer');
+        var directionsForm = document.getElementById('directionsForm')
+
+        fromLocationInput.addEventListener('keyup', debounce(onKeyup, 500));
+        toLocationInput.addEventListener('keyup', debounce(onKeyup, 500));
+        directionsForm.addEventListener('submit', onSubmit);
+
+        function GetMap() {
+            map = new Microsoft.Maps.Map('#mapView', {
+                credentials: key
+            });
+
+            map.setView({
+                bounds: Microsoft.Maps.LocationRect.fromCorners(
+                    new Microsoft.Maps.Location(37.703773, -122.520217),
+                    new Microsoft.Maps.Location(37.863681, -122.351646)
+                )
+            });
+        }
+
+        function debounce(func, wait, immediate) {
+            var timeout;
+            return function () {
+                var context = this, args = arguments;
+                var later = function () {
+                    timeout = null;
+                    if (!immediate) func.apply(context, args);
+                };
+                var callNow = immediate && !timeout;
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+                if (callNow) func.apply(context, args);
+            };
+        };
+
+        function onKeyup(e) {
+            var prefix = e.target.value;
+            var inputEl = e.target;
+
+            var url = 'http://dev.virtualearth.net/REST/v1/Autosuggest'
+            axios.get(url, {
+                params: {
+                    query: prefix,
+                    userMapView: '37.703773,-122.520217,37.863681,-122.351646',
+                    key
+                }
+            }).then(function (response) {
+                var suggestions = response.data.resourceSets[0].resources[0].value;
+                renderSuggestions(suggestions, inputEl);
+            })
+        }
+
+        function renderSuggestions(suggestions, inputEl) {
+            suggestionsContainer.innerHTML = '';
+            var actionList = document.createElement('ul');
+            actionList.className = 'ActionList ActionList--divided';
+            suggestions.forEach(function (suggestion) {
+                var actionListItem = document.createElement('li');
+                actionListItem.className = 'ActionList-item';
+
+                var actionListContent = document.createElement('span');
+                actionListContent.className = 'ActionList-content';
+
+                var actionListItemLabel = document.createElement('span');
+                actionListItemLabel.className = 'ActionList-item-label';
+                actionListItemLabel.innerHTML = suggestion.name || suggestion.address.formattedAddress;
+
+                actionListContent.appendChild(actionListItemLabel);
+                actionListItem.appendChild(actionListContent);
+                actionList.appendChild(actionListItem);
+
+                actionListItem.addEventListener('click', function () {
+                    inputEl.value = actionListItemLabel.innerHTML;
+                    suggestionsContainer.innerHTML = '';
+                })
+            });
+            suggestionsContainer.appendChild(actionList);
+        }
+
+        function onSubmit(e) {
+            e.preventDefault();
+
+            var url = 'http://dev.virtualearth.net/REST/v1/Routes'
+            axios.get(url, {
+                params: {
+                    'waypoint.0': fromLocationInput.value,
+                    'waypoint.1': toLocationInput.value,
+                    routeAttributes: 'excludeItinerary,routePath',
+                    routePathOutput: 'Points',
+                    maxSolutions: 3,
+                    travelMode: 'Driving',
+                    key
+                }
+            }).then(function (response) {
+                // var colors = ['red', 'yellow', 'green'];
+
+                var resources = response.data.resourceSets[0].resources;
+                // resources.forEach(function (resource, idx) {
+                var coords = resources[0].routePath.line.coordinates;
+                coords = coords.map(function (item) {
+                    return new Microsoft.Maps.Location(item[0], item[1]);
+                });
+
+                var line = new Microsoft.Maps.Polyline(coords, {
+                    strokeColor: 'red',
+                    strokeThickness: 3,
+                });
+
+                map.entities.push(line);
+                // });
+            })
+        }
+    </script>
+</body>
+
+</html>
 {% endblock content %}
