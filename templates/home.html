@@ -149,7 +149,7 @@
 
                 //var resources = response.data.resourceSets[0].resources;
                 // resources.forEach(function (resource, idx) {
-                var coords = response.data.routePath.line.coordinates;
+                var coords = response.data;
                 coords = coords.map(function (item) {
                     return new Microsoft.Maps.Location(item[0], item[1]);
                 });
