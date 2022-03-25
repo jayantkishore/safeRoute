@@ -12,18 +12,15 @@ class AboutPageView(TemplateView):
 class V1View(APIView):
     def post(self, request):
         
-        src_lat = request.data['src_lat']
-        src_lng = request.data['src_lng']
-        dst_lat = request.data['dst_lat']
-        dst_lng = request.data['dst_lng']
-
+        src = request.data['src']
+        dst = request.data['dst']
         API_KEY="ApeJ9VF0hG73kt0lv0qLdSMAOUUNI3vn-SEMmrc7s6ywCKLjWEgeSA6EJW5ODb3k"
         
         route_url="http://dev.virtualearth.net/REST/V1/Routes/Driving"
        
         params = {
-            'wp.0': src_lat+","+src_lng,
-            'wp.1': dst_lat+ ","+dst_lng,
+            'wp.0': src,
+            'wp.1': dst,
             'routeAttributes': 'routePath',
             'key':API_KEY,
             'maxSolutions':3,
@@ -33,7 +30,7 @@ class V1View(APIView):
         json_body = {
             'message' : "hi"
         }
-        url = "http://dev.virtualearth.net/REST/V1/Routes/Driving?wp.0=23.81172, 86.442141&wp.1=23.813814, 86.441608&routeAttributes=routePath&key=ApeJ9VF0hG73kt0lv0qLdSMAOUUNI3vn-SEMmrc7s6ywCKLjWEgeSA6EJW5ODb3k&maxSolutions=5&routePathOutput=Points"
+        #url = "http://dev.virtualearth.net/REST/V1/Routes/Driving?wp.0=23.81172, 86.442141&wp.1=23.813814, 86.441608&routeAttributes=routePath&key=ApeJ9VF0hG73kt0lv0qLdSMAOUUNI3vn-SEMmrc7s6ywCKLjWEgeSA6EJW5ODb3k&maxSolutions=5&routePathOutput=Points"
         response = requests.get(route_url,params=params).json()
 
         ##print(type(response))
