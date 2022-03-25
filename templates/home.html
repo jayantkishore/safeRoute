@@ -139,23 +139,17 @@
         function onSubmit(e) {
             e.preventDefault();
 
-            var url = 'http://dev.virtualearth.net/REST/v1/Routes'
-            axios.get(url, {
-                params: {
-                    'waypoint.0': fromLocationInput.value,
-                    'waypoint.1': toLocationInput.value,
-                    routeAttributes: 'excludeItinerary,routePath',
-                    routePathOutput: 'Points',
-                    maxSolutions: 3,
-                    travelMode: 'Driving',
-                    key
-                }
+            var url = '/route'
+            axios.post(url, {
+                    'src': fromLocationInput.value,
+                    'dst': toLocationInput.value,
+                    
             }).then(function (response) {
                 // var colors = ['red', 'yellow', 'green'];
 
-                var resources = response.data.resourceSets[0].resources;
+                //var resources = response.data.resourceSets[0].resources;
                 // resources.forEach(function (resource, idx) {
-                var coords = resources[0].routePath.line.coordinates;
+                var coords = response.data.routePath.line.coordinates;
                 coords = coords.map(function (item) {
                     return new Microsoft.Maps.Location(item[0], item[1]);
                 });
