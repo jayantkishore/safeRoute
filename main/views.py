@@ -5,6 +5,8 @@ from rest_framework import status
 import requests
 import os
 import pickle
+import flexpolyline as fp
+
 class HomePageView(TemplateView):
     template_name = 'home.html'
 class AboutPageView(TemplateView):
@@ -14,18 +16,18 @@ class V1View(APIView):
         
         src = request.data['src']
         dst = request.data['dst']
-        API_KEY="ApeJ9VF0hG73kt0lv0qLdSMAOUUNI3vn-SEMmrc7s6ywCKLjWEgeSA6EJW5ODb3k"
+        API_KEY="GjDOz0a4Xv04xFVpe8ywIaw1DNQvIX3SJHCgSD3WMs0"
         
-        route_url="http://dev.virtualearth.net/REST/V1/Routes/Driving"
+        route_url="https://router.hereapi.com/v8/routes"
        
         params = {
-            'wp.0': src,
-            'wp.1': dst,
-            'routeAttributes': 'routePath',
-            'key':API_KEY,
-            'maxSolutions':3,
-            'routePathOutput':'Points'
-
+            'origin': src,
+            'destination': dst,
+            'routingMode': 'short',
+            'apiKey':API_KEY,
+            'alternatives':6,
+            'transportMode':'car',
+            'return':'actions,polyline,summary'
         }
         json_body = {
             'message' : "hi"
@@ -35,21 +37,34 @@ class V1View(APIView):
 
         ##print(type(response))
         ##print(response)
-        n_routes=response['resourceSets'][0]['estimatedTotal']
+        n_routes=len(response['routes'])
         waypoints = [[[ [] for _ in range(n_routes)] for _ in range(n_routes)] for _ in range(n_routes)]
        # route_scores=[[None]*2]*n_routes
         route_scores = []
         print(n_routes)
         for i in range(n_routes):
-            waypoints[i]=response["resourceSets"][0]["resources"][i]["routePath"]["line"]["coordinates"]
+            route_obj = response['routes'][i]
+            route_waypoints=[]
+            for j in range(len(route_obj['sections'])):
+                section_obj = route_obj['sections'][j]
+                positions = fp.decode(section_obj['polyline'])
+                                
+                for k in range(len(section_obj['actions'])):
+                    point=[]
+                    point.append(positions[section_obj['actions'][k]['offset']][0])
+                    point.append(positions[section_obj['actions'][k]['offset']][1])
+                    route_waypoints.append(point)
+
+            waypoints[i]=route_waypoints
             route_scores.append((getScore(waypoints[i]),i))
             #route_scores[i][0]=i
             #route_scores[i][1]=getScore(waypoints[i])
-        print(route_scores)
+        
         route_scores.sort()
+        print(route_scores)
         #route_scores = Sort(route_scores)
         optimal_route_idx = route_scores[0][1]
-        optimal_route = response["resourceSets"][0]["resources"][optimal_route_idx]
+        optimal_route = waypoints[optimal_route_idx]
 
         return Response(optimal_route,status = status.HTTP_200_OK)
 
