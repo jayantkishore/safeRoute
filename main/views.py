@@ -30,9 +30,9 @@ class V1View(APIView):
             'transportMode':'car',
             'return':'actions,polyline,summary'
         }
-        json_body = {
-            'message' : "hi"
-        }
+        #json_body = {
+        #    'message' : "hi"
+        #}
         #url = "http://dev.virtualearth.net/REST/V1/Routes/Driving?wp.0=23.81172, 86.442141&wp.1=23.813814, 86.441608&routeAttributes=routePath&key=ApeJ9VF0hG73kt0lv0qLdSMAOUUNI3vn-SEMmrc7s6ywCKLjWEgeSA6EJW5ODb3k&maxSolutions=5&routePathOutput=Points"
         response = requests.get(route_url,params=params).json()
 
@@ -45,16 +45,17 @@ class V1View(APIView):
         print(n_routes)
         for i in range(n_routes):
             route_obj = response['routes'][i]
-            route_waypoints=[]
             for j in range(len(route_obj['sections'])):
                 section_obj = route_obj['sections'][j]
                 positions = fp.decode(section_obj['polyline'])
-                                
-                for k in range(len(section_obj['actions'])):
-                    point=[]
-                    point.append(positions[section_obj['actions'][k]['offset']][0])
-                    point.append(positions[section_obj['actions'][k]['offset']][1])
-                    route_waypoints.append(point)
+                route_waypoints = [list(ele) for ele in positions]
+                print(type(positions[0]))
+                print(positions)             
+                # for k in range(len(section_obj['actions'])):
+                #     point=[]
+                #     point.append(positions[section_obj['actions'][k]['offset']][0])
+                #     point.append(positions[section_obj['actions'][k]['offset']][1])
+                #     route_waypoints.append(point)
 
             waypoints[i]=route_waypoints
             route_scores.append((getScore(waypoints[i]),i))
