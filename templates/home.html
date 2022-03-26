@@ -19,16 +19,29 @@
             height: 100%;
         }
 
-        #directionsInputContainer {
+        #directionsContainer {
             width: 24rem;
+        }
+
+        .suggestion-list-item,
+        .route-list-item {
+            cursor: pointer;
+        }
+
+        .suggestion-list-item:hover {
+            background-color: var(--color-state-hover-secondary-bg);
+        }
+
+        .route-list-item.selected {
+            background-color: #dcecf8;
         }
     </style>
 </head>
 
 <body>
     <div id="root" class="d-flex">
-        <div id="directionsInputContainer" class="px-4 py-2">
-            <form id="directionsForm">
+        <div id="directionsContainer">
+            <form id="directionsForm" class="px-4 py-3 border-bottom">
                 <div class="form-group">
                     <div class="form-group-body">
                         <input class="form-control input-block" type="text" id="fromLocationInput" placeholder="From" />
@@ -43,9 +56,9 @@
                     <button class="btn btn-primary" type="submit">Go</button>
                 </div>
             </form>
-            <div id="suggestionsContainer"></div>
+            <div id="resultsContainer"></div>
         </div>
-        <div id="mapView" class="flex-1" style="background-color: black;"></div>
+        <div id="mapView" class="flex-1 color-bg-canvas-inverse"></div>
     </div>
 
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -53,12 +66,12 @@
     <script type="text/javascript">
         var key = 'Ar6eHNUXk2Llf5e09ghWzMpilyvbxJMKn9spC6ZTUV06f8E12xhzSuJCh3ONjqZY'
 
-        var map;
+        var map, selectedRouteIdx = 0, routePolylines = [];
 
         var fromLocationInput = document.getElementById('fromLocationInput');
         var toLocationInput = document.getElementById('toLocationInput');
-        var suggestionsContainer = document.getElementById('suggestionsContainer');
-        var directionsForm = document.getElementById('directionsForm')
+        var resultsContainer = document.getElementById('resultsContainer');
+        var directionsForm = document.getElementById('directionsForm');
 
         fromLocationInput.addEventListener('keyup', debounce(onKeyup, 500));
         toLocationInput.addEventListener('keyup', debounce(onKeyup, 500));
@@ -75,6 +88,24 @@
                     new Microsoft.Maps.Location(37.863681, -122.351646)
                 )
             });
+
+            // var url = '/cluster';
+            // axios.get(url).then(function (response) {
+            //     var locs = response.data.clusters.map(function (item) {
+            //         return new Microsoft.Maps.Location(item[0], item[1]);
+            //     });
+            //     Microsoft.Maps.loadModule('Microsoft.Maps.HeatMap', function () {
+            //         var heatmap = new Microsoft.Maps.HeatMapLayer(locs, {
+            //             colorGradient: {
+            //                 '0': 'White',
+            //                 '0.66': 'Yellow',
+            //                 '1': 'Red'
+            //             },
+            //             opacity: 1
+            //         });
+            //         map.layers.insert(heatmap);
+            //     });
+            // });
         }
 
         function debounce(func, wait, immediate) {
@@ -105,70 +136,135 @@
                 }
             }).then(function (response) {
                 var suggestions = response.data.resourceSets[0].resources[0].value;
+                // console.log('Autosuggest', suggestions);
                 renderSuggestions(suggestions, inputEl);
             })
         }
 
         function renderSuggestions(suggestions, inputEl) {
-            suggestionsContainer.innerHTML = '';
-            var actionList = document.createElement('ul');
-            actionList.className = 'ActionList ActionList--divided';
+            resultsContainer.innerHTML = '';
+
+            var suggestionList = document.createElement('div');
+            suggestionList.className = 'suggestion-list';
             suggestions.forEach(function (suggestion) {
-                var actionListItem = document.createElement('li');
-                actionListItem.className = 'ActionList-item';
+                var suggestionListItem = document.createElement('div');
+                suggestionListItem.className = 'suggestion-list-item px-4 py-2 border-bottom';
+                suggestionListItem.innerHTML =
+                    (suggestion.name ? suggestion.name + ', ' : '')
+                    + suggestion.address.formattedAddress;
 
-                var actionListContent = document.createElement('span');
-                actionListContent.className = 'ActionList-content';
+                suggestionListItem.addEventListener('click', function () {
+                    inputEl.value = suggestionListItem.innerHTML;
+                    resultsContainer.innerHTML = '';
+                });
 
-                var actionListItemLabel = document.createElement('span');
-                actionListItemLabel.className = 'ActionList-item-label';
-                actionListItemLabel.innerHTML = suggestion.name || suggestion.address.formattedAddress;
-
-                actionListContent.appendChild(actionListItemLabel);
-                actionListItem.appendChild(actionListContent);
-                actionList.appendChild(actionListItem);
-
-                actionListItem.addEventListener('click', function () {
-                    inputEl.value = actionListItemLabel.innerHTML;
-                    suggestionsContainer.innerHTML = '';
-                })
+                suggestionList.appendChild(suggestionListItem);
             });
-            suggestionsContainer.appendChild(actionList);
+
+            resultsContainer.appendChild(suggestionList);
         }
 
         function onSubmit(e) {
             e.preventDefault();
 
+            resultsContainer.innerHTML = '';
+            map.entities.clear();
+
             var url = '/route'
             axios.post(url, {
-                    'src': fromLocationInput.value,
-                    'dst': toLocationInput.value,
-                    
+                src: fromLocationInput.value,
+                dst: toLocationInput.value,
             }).then(function (response) {
-                var colors = ['red', 'yellow', 'green','blue','pink','indigo','orange','violet','cyan','black'];
-
                 var resources = response.data;
-                resources.forEach(function (resource, idx) {
-                var coords = resource['waypoints'];
-                console.log(coords);
-                
-                coords = coords.map(function (item) {
-                    return new Microsoft.Maps.Location(item[0], item[1]);
-                });
-                
-                var line = new Microsoft.Maps.Polyline(coords, {
-                    strokeColor: colors[idx],
-                    strokeThickness: 3,
-                });
-                
-                map.entities.push(line);
-                 });
+                // console.log('Routes', resources);
+                renderRoutes(resources);
             })
+        }
+
+        function renderRoutes(resources) {
+            resultsContainer.innerHTML = '';
+
+            var routeList = document.createElement('div');
+            routeList.className = 'route-list';
+            routePolylines = resources.slice(0, 3).map(function (resource, idx) {
+                var routeListItem = document.createElement('div');
+                routeListItem.className = 'route-list-item border-bottom d-flex';
+                routeListItem.innerHTML = `
+                    <div class="px-3 py-2 text-center lh-condensed" style="background-color: var(--color-fade-black-10);">
+                        <div class="f3">
+                            ${Math.round(resource.duration / 60)}
+                        </div>
+                        <div>min</div>
+                    </div>
+                    <div class="px-2 py-2 flex-1">
+                        ${idx == 0 ? '<div class="color-text-success">Safest Route</div>' : ''}
+                        <div>Route ${idx + 1}</div>
+                    </div>
+                    <div class="px-2 py-2">
+                        ${Math.round(resource.distance * 100) / 100}km
+                    </div>
+                `;
+
+                routeListItem.addEventListener('click', function () {
+                    selectRoute(idx);
+                });
+
+                routeList.appendChild(routeListItem);
+
+                var coords = resource.waypoints
+                    .map(function (item) {
+                        return new Microsoft.Maps.Location(item[0], item[1]);
+                    });
+                return createPolyline(coords, idx);
+            });
+
+            resultsContainer.appendChild(routeList);
+
+            selectRoute(0);
+        }
+
+        function selectRoute(routeIdx) {
+            var routeListItems = document.getElementsByClassName('route-list-item');
+            for (var i = 0; i < routeListItems.length; i++) {
+                routeListItems[i].classList.remove('selected');
+            }
+            routeListItems[routeIdx].classList.add('selected');
+
+            var newRoutePolyLines = routePolylines;
+            for (var i = 0; i < routePolylines.length; i++) {
+                if (i != routeIdx) {
+                    newRoutePolyLines[i] = createPolyline(routePolylines[i][0].getLocations(), i);
+                    map.entities.remove(routePolylines[i][0]);
+                    map.entities.remove(routePolylines[i][1]);
+                }
+            }
+            newRoutePolyLines[routeIdx] = createPolyline(routePolylines[routeIdx][0].getLocations(), routeIdx, true);
+            map.entities.remove(routePolylines[routeIdx][0]);
+            map.entities.remove(routePolylines[routeIdx][1]);
+            routePolylines = newRoutePolyLines;
+        }
+
+        function createPolyline(coords, routeIdx, selected = false) {
+            var outerPolyline = new Microsoft.Maps.Polyline(coords, {
+                strokeColor: '#4499ff',
+                strokeThickness: 7,
+            });
+            var innerPolyline = new Microsoft.Maps.Polyline(coords, {
+                strokeColor: selected ? '#36a8ff' : '#edf7ff',
+                strokeThickness: 5,
+            });
+
+            map.entities.push(outerPolyline);
+            map.entities.push(innerPolyline);
+
+            Microsoft.Maps.Events.addHandler(innerPolyline, 'click', function () {
+                selectRoute(routeIdx);
+            });
+
+            return [innerPolyline, outerPolyline];
         }
     </script>
 </body>
 
 </html>
 {% endblock content %}
-
-
