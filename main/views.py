@@ -49,10 +49,18 @@ class V1View(APIView):
         print(route_scores)
         route_scores.sort()
         #route_scores = Sort(route_scores)
-        optimal_route_idx = route_scores[0][1]
-        optimal_route = response["resourceSets"][0]["resources"][optimal_route_idx]["routePath"]["line"]["coordinates"]
+        # optimal_route_idx = route_scores[0][1]
+        # optimal_route = response["resourceSets"][0]["resources"][optimal_route_idx]["routePath"]["line"]["coordinates"]
 
-        return Response(optimal_route,status = status.HTTP_200_OK)
+        # return Response(optimal_route,status = status.HTTP_200_OK)
+        all_routes=[]
+        for i in range(n_routes):
+            j = route_scores[i][1]
+            waypoints = response["resourceSets"][0]["resources"][j]["routePath"]["line"]["coordinates"]
+            json_body={'waypoints':waypoints,'score':route_scores[i][0]}
+            all_routes.append(json_body)
+        return Response(all_routes,status = status.HTTP_200_OK)
+
 
 class clusterView(APIView):
     def get(self,request):
