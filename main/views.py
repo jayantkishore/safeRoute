@@ -50,7 +50,7 @@ class V1View(APIView):
         route_scores.sort()
         #route_scores = Sort(route_scores)
         optimal_route_idx = route_scores[0][1]
-        optimal_route = response["resourceSets"][0]["resources"][optimal_route_idx]
+        optimal_route = response["resourceSets"][0]["resources"][optimal_route_idx]["routePath"]["line"]["coordinates"]
 
         return Response(optimal_route,status = status.HTTP_200_OK)
 
