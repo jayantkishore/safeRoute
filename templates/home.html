@@ -145,22 +145,24 @@
                     'dst': toLocationInput.value,
                     
             }).then(function (response) {
-                // var colors = ['red', 'yellow', 'green'];
+                var colors = ['red', 'yellow', 'green','blue','pink','indigo','orange','violet','cyan','black'];
 
-                //var resources = response.data.resourceSets[0].resources;
-                // resources.forEach(function (resource, idx) {
-                var coords = response.data.routePath.line.coordinates;
+                var resources = response.data;
+                resources.forEach(function (resource, idx) {
+                var coords = resource['waypoints'];
+                console.log(coords);
+                
                 coords = coords.map(function (item) {
                     return new Microsoft.Maps.Location(item[0], item[1]);
                 });
-
+                
                 var line = new Microsoft.Maps.Polyline(coords, {
-                    strokeColor: 'red',
+                    strokeColor: colors[idx],
                     strokeThickness: 3,
                 });
-
+                
                 map.entities.push(line);
-                // });
+                 });
             })
         }
     </script>
@@ -168,3 +170,5 @@
 
 </html>
 {% endblock content %}
+
+
