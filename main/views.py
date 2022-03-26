@@ -66,7 +66,7 @@ class V1View(APIView):
 
 class clusterView(APIView):
     def get(self,request):
-        df = pd.read_csv(os.getcwd()+'/model/crime.csv')
+        df = pd.read_csv(os.getcwd()+'/model/final.csv')
         payload = df.values.tolist()
         return Response({'clusters':payload},status = status.HTTP_200_OK)
 #def Sort(sub_li):
