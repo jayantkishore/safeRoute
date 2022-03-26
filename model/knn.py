@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-df = pd.read_csv('crime.csv')
+df = pd.read_csv('final.csv')
 #df.describe()
 
 from sklearn.model_selection import train_test_split
