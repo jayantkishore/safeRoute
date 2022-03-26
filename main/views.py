@@ -70,7 +70,9 @@ class V1View(APIView):
         all_routes=[]
         for i in range(n_routes):
             j = route_scores[i][1]
-            json_body={'waypoints':waypoints[j],'score':route_scores[i][0]}
+            distance = response['routes'][j]['sections'][0]['summary']['length']/1000
+            duration = response['routes'][j]['sections'][0]['summary']['baseDuration']
+            json_body={'waypoints':waypoints[j],'distance':distance,'duration':duration,'score':route_scores[i][0]}
             all_routes.append(json_body)
         return Response(all_routes,status = status.HTTP_200_OK)
 
