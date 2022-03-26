@@ -6,6 +6,7 @@ import requests
 import os
 import pickle
 import flexpolyline as fp
+import pandas as pd
 
 class HomePageView(TemplateView):
     template_name = 'home.html'
@@ -68,7 +69,11 @@ class V1View(APIView):
 
         return Response(optimal_route,status = status.HTTP_200_OK)
 
-
+class clusterView(APIView):
+    def get(self,request):
+        df = pd.read_csv(os.getcwd()+'/model/crime.csv')
+        payload = df.values.tolist()
+        return Response({'clusters':payload},status = status.HTTP_200_OK)
 #def Sort(sub_li):
 
 #    return(sorted(sub_li, key = lambda x: x[1],reverse=True))
