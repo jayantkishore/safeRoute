@@ -66,7 +66,7 @@
     <script type="text/javascript">
         var key = 'Ar6eHNUXk2Llf5e09ghWzMpilyvbxJMKn9spC6ZTUV06f8E12xhzSuJCh3ONjqZY'
 
-        var map, selectedRouteIdx = 0, routePolylines = [];
+        var map, routes = [], sourcePoint, destinationPoint;
 
         var fromLocationInput = document.getElementById('fromLocationInput');
         var toLocationInput = document.getElementById('toLocationInput');
@@ -175,24 +175,28 @@
                 src: fromLocationInput.value,
                 dst: toLocationInput.value,
             }).then(function (response) {
-                var resources = response.data;
-                // console.log('Routes', resources);
-                renderRoutes(resources);
+                routes = response.data;
+                // console.log('Routes', routes);
+                if (routes.length > 0) {
+                    sourcePoint = routes[0].waypoints[0];
+                    destinationPoint = routes[0].waypoints[routes[0].waypoints.length - 1];
+                    renderRoutes();
+                }
             })
         }
 
-        function renderRoutes(resources) {
+        function renderRoutes() {
             resultsContainer.innerHTML = '';
 
             var routeList = document.createElement('div');
             routeList.className = 'route-list';
-            routePolylines = resources.slice(0, 3).map(function (resource, idx) {
+            routes.forEach(function (route, idx) {
                 var routeListItem = document.createElement('div');
                 routeListItem.className = 'route-list-item border-bottom d-flex';
                 routeListItem.innerHTML = `
                     <div class="px-3 py-2 text-center lh-condensed" style="background-color: var(--color-fade-black-10);">
                         <div class="f3">
-                            ${Math.round(resource.duration / 60)}
+                            ${Math.round(route.duration / 60)}
                         </div>
                         <div>min</div>
                     </div>
@@ -201,7 +205,7 @@
                         <div>Route ${idx + 1}</div>
                     </div>
                     <div class="px-2 py-2">
-                        ${Math.round(resource.distance * 100) / 100}km
+                        ${Math.round(route.distance * 100) / 100}km
                     </div>
                 `;
 
@@ -211,11 +215,7 @@
 
                 routeList.appendChild(routeListItem);
 
-                var coords = resource.waypoints
-                    .map(function (item) {
-                        return new Microsoft.Maps.Location(item[0], item[1]);
-                    });
-                return createPolyline(coords, idx);
+                createPolyline(route.waypoints, idx);
             });
 
             resultsContainer.appendChild(routeList);
@@ -224,44 +224,58 @@
         }
 
         function selectRoute(routeIdx) {
+            map.entities.clear();
+
             var routeListItems = document.getElementsByClassName('route-list-item');
-            for (var i = 0; i < routeListItems.length; i++) {
+            for (var i = 0; i < routes.length; i++) {
                 routeListItems[i].classList.remove('selected');
             }
             routeListItems[routeIdx].classList.add('selected');
 
-            var newRoutePolyLines = routePolylines;
-            for (var i = 0; i < routePolylines.length; i++) {
+            for (var i = 0; i < routes.length; i++) {
                 if (i != routeIdx) {
-                    newRoutePolyLines[i] = createPolyline(routePolylines[i][0].getLocations(), i);
-                    map.entities.remove(routePolylines[i][0]);
-                    map.entities.remove(routePolylines[i][1]);
+                    createPolyline(routes[i].waypoints, i);
                 }
             }
-            newRoutePolyLines[routeIdx] = createPolyline(routePolylines[routeIdx][0].getLocations(), routeIdx, true);
-            map.entities.remove(routePolylines[routeIdx][0]);
-            map.entities.remove(routePolylines[routeIdx][1]);
-            routePolylines = newRoutePolyLines;
+            createPolyline(routes[routeIdx].waypoints, routeIdx, true);
+
+            createPushpin(sourcePoint, '#228b22');
+            createPushpin(destinationPoint, '#ff7722');
         }
 
-        function createPolyline(coords, routeIdx, selected = false) {
-            var outerPolyline = new Microsoft.Maps.Polyline(coords, {
-                strokeColor: '#4499ff',
-                strokeThickness: 7,
-            });
-            var innerPolyline = new Microsoft.Maps.Polyline(coords, {
+        function createPolyline(waypoints, routeIdx, selected = false) {
+            var locations = waypoints
+                .map(function (point) {
+                    return new Microsoft.Maps.Location(point[0], point[1]);
+                });
+
+            var polyline = new Microsoft.Maps.Polyline(locations, {
                 strokeColor: selected ? '#36a8ff' : '#edf7ff',
                 strokeThickness: 5,
+                secondaryStrokeColor: '#4499ff',
+                secondaryStrokeThickness: 7,
             });
 
-            map.entities.push(outerPolyline);
-            map.entities.push(innerPolyline);
+            map.entities.push(polyline);
 
-            Microsoft.Maps.Events.addHandler(innerPolyline, 'click', function () {
+            Microsoft.Maps.Events.addHandler(polyline, 'click', function () {
                 selectRoute(routeIdx);
             });
 
-            return [innerPolyline, outerPolyline];
+            return polyline;
+        }
+
+        function createPushpin(point, color) {
+            var location = new Microsoft.Maps.Location(point[0], point[1]);
+
+            var pushpin = new Microsoft.Maps.Pushpin(
+                location,
+                color ? { color } : {}
+            );
+
+            map.entities.push(pushpin);
+
+            return pushpin;
         }
     </script>
 </body>
