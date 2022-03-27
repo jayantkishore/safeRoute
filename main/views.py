@@ -92,7 +92,7 @@ def getScore(waypoints):
     filename = os.getcwd()+'/model/finalized_kNN_model.sav'
     model = pickle.load(open(filename, 'rb'))
     y_pred = model.predict(waypoints)
-    return sum(y_pred)
+    return sum(y_pred)/len(waypoints)
 def getCoordinates(addr):
     addr_url = 'http://dev.virtualearth.net/REST/v1/Locations'
     BING_API_KEY = 'ApeJ9VF0hG73kt0lv0qLdSMAOUUNI3vn-SEMmrc7s6ywCKLjWEgeSA6EJW5ODb3k'
