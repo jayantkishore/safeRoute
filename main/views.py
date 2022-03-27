@@ -15,9 +15,12 @@ class AboutPageView(TemplateView):
 class V1View(APIView):
     def post(self, request):
         
-        src = request.data['src']
-        dst = request.data['dst']
-        API_KEY="GjDOz0a4Xv04xFVpe8ywIaw1DNQvIX3SJHCgSD3WMs0"
+        src_addr = request.data['src']
+        dst_addr = request.data['dst']
+        src = getCoordinates(src_addr)
+        dst = getCoordinates(dst_addr)
+
+        HERE_API_KEY="GjDOz0a4Xv04xFVpe8ywIaw1DNQvIX3SJHCgSD3WMs0"
         
         route_url="https://router.hereapi.com/v8/routes"
        
@@ -25,7 +28,7 @@ class V1View(APIView):
             'origin': src,
             'destination': dst,
             'routingMode': 'short',
-            'apiKey':API_KEY,
+            'apiKey':HERE_API_KEY,
             'alternatives':6,
             'transportMode':'car',
             'return':'actions,polyline,summary'
@@ -49,8 +52,8 @@ class V1View(APIView):
                 section_obj = route_obj['sections'][j]
                 positions = fp.decode(section_obj['polyline'])
                 route_waypoints = [list(ele) for ele in positions]
-                print(type(positions[0]))
-                print(positions)             
+                
+                          
                 # for k in range(len(section_obj['actions'])):
                 #     point=[]
                 #     point.append(positions[section_obj['actions'][k]['offset']][0])
@@ -90,4 +93,17 @@ def getScore(waypoints):
     model = pickle.load(open(filename, 'rb'))
     y_pred = model.predict(waypoints)
     return sum(y_pred)
-        
+def getCoordinates(addr):
+    addr_url = 'http://dev.virtualearth.net/REST/v1/Locations'
+    BING_API_KEY = 'ApeJ9VF0hG73kt0lv0qLdSMAOUUNI3vn-SEMmrc7s6ywCKLjWEgeSA6EJW5ODb3k'
+    params = {
+        'query': addr,
+        'maxResults': 1,
+        'key':BING_API_KEY
+    }
+    response = requests.get(addr_url,params=params).json()
+    addr = response['resourceSets'][0]['resources'][0]['point']['coordinates']
+
+    return str(addr[0])+','+str(addr[1])
+
+   
