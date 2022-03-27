@@ -89,23 +89,9 @@
                 )
             });
 
-            // var url = '/cluster';
-            // axios.get(url).then(function (response) {
-            //     var locs = response.data.clusters.map(function (item) {
-            //         return new Microsoft.Maps.Location(item[0], item[1]);
-            //     });
-            //     Microsoft.Maps.loadModule('Microsoft.Maps.HeatMap', function () {
-            //         var heatmap = new Microsoft.Maps.HeatMapLayer(locs, {
-            //             colorGradient: {
-            //                 '0': 'White',
-            //                 '0.66': 'Yellow',
-            //                 '1': 'Red'
-            //             },
-            //             opacity: 1
-            //         });
-            //         map.layers.insert(heatmap);
-            //     });
-            // });
+            Microsoft.Maps.loadModule('Microsoft.Maps.HeatMap');
+
+            renderClusters();
         }
 
         function debounce(func, wait, immediate) {
@@ -214,8 +200,6 @@
                 });
 
                 routeList.appendChild(routeListItem);
-
-                createPolyline(route.waypoints, idx);
             });
 
             resultsContainer.appendChild(routeList);
@@ -276,6 +260,47 @@
             map.entities.push(pushpin);
 
             return pushpin;
+        }
+
+        function renderClusters() {
+            var url = '/cluster';
+            axios.get(url).then(function (response) {
+                var clusters = response.data.clusters;
+
+                var clusterGroups = [[], [], [], []];
+                clusters.forEach(function (cluster) {
+                    clusterGroups[Math.max(Math.ceil(cluster[2]) - 2, 0)].push(cluster);
+                });
+
+                clusterGroups.forEach(function (clusterGroup, i) {
+                    createHeatMapLayer(
+                        clusterGroup,
+                        0.1 * (i + 2),
+                        125
+                    );
+                });
+            });
+        }
+
+        function createHeatMapLayer(clusters, intensity = 0.5, radius = 100) {
+            var locations = clusters.map(function (cluster) {
+                return new Microsoft.Maps.Location(cluster[0], cluster[1]);
+            });
+
+            var heatmapLayer = new Microsoft.Maps.HeatMapLayer(locations, {
+                colorGradient: {
+                    '0': 'White',
+                    '0.66': 'Yellow',
+                    '1': 'Red'
+                },
+                intensity,
+                opacity: 0.75,
+                radius,
+                unit: 'meters',
+                drawOrder: -100
+            });
+
+            map.layers.insert(heatmapLayer);
         }
     </script>
 </body>
