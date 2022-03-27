@@ -13,7 +13,7 @@ Y=train_set['cluster']
 from sklearn.neighbors import KNeighborsRegressor
 import pickle
 
-neigh = KNeighborsRegressor(n_neighbors=5,weights='distance')
+neigh = KNeighborsRegressor(n_neighbors=10,weights='distance')
 neigh.fit(X.values,Y.values)
 # save the model to disk
 filename = 'finalized_kNN_model.sav'
