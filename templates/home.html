@@ -1,11 +1,13 @@
 <!-- templates/home.html -->
 {% extends 'base.html' %}
 {% block content %}
+{% load static %}
 <!DOCTYPE html>
 <html>
 
 <head>
     <title>SIGABRT</title>
+    <link rel= "icon" href="{% static 'safe.png' %}">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
     <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=GetMap' async defer></script>
