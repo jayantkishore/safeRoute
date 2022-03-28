@@ -1,18 +1,18 @@
 <!-- templates/home.html -->
-{% extends 'base.html' %}
-{% block content %}
 {% load static %}
+{% block content %}
 <!DOCTYPE html>
 <html>
 
 <head>
-    <title>SIGABRT</title>
-    <link rel= "icon" href="{% static 'safe.png' %}">
+    <title>SafeHer</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <link rel="icon" type="image/x-icon" href="{% static 'safe.png' %}">
 
     <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?callback=GetMap' async defer></script>
 
-    <link href="https://unpkg.com/@primer/css@^16.0.0/dist/primer.css" rel="stylesheet" />
+    <link href="https://unpkg.com/@primer/css@16.3.0/dist/primer.css" rel="stylesheet" />
 
     <style>
         html,
@@ -22,11 +22,17 @@
         }
 
         #directionsContainer {
+            width: 0;
+            transition: width 0.3s ease 0s;
+        }
+
+        #directionsContainer.open {
             width: 24rem;
         }
 
         .suggestion-list-item,
-        .route-list-item {
+        .route-list-item,
+        #menuButton {
             cursor: pointer;
         }
 
@@ -37,30 +43,63 @@
         .route-list-item.selected {
             background-color: #dcecf8;
         }
+
+        #menuButton:hover {
+            fill: var(--color-icon-info);
+        }
     </style>
 </head>
 
 <body>
-    <div id="root" class="d-flex">
-        <div id="directionsContainer">
-            <form id="directionsForm" class="px-4 py-3 border-bottom">
-                <div class="form-group">
-                    <div class="form-group-body">
-                        <input class="form-control input-block" type="text" id="fromLocationInput" placeholder="From" />
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="form-group-body">
-                        <input class="form-control input-block" type="text" id="toLocationInput" placeholder="To" />
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button class="btn btn-primary" type="submit">Go</button>
-                </div>
-            </form>
-            <div id="resultsContainer"></div>
+    <div id="root" class="d-flex flex-column">
+        <div class="Header py-2">
+            <div class="Header-item">
+                <svg id="menuButton" class="octicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16"
+                    height="16">
+                    <path fill-rule="evenodd"
+                        d="M1 2.75A.75.75 0 011.75 2h12.5a.75.75 0 110 1.5H1.75A.75.75 0 011 2.75zm0 5A.75.75 0 011.75 7h12.5a.75.75 0 110 1.5H1.75A.75.75 0 011 7.75zM1.75 12a.75.75 0 100 1.5h12.5a.75.75 0 100-1.5H1.75z">
+                    </path>
+                </svg>
+            </div>
+            <div class="Header-item">
+                <a href="#" class="Header-link f4 d-flex flex-items-center">
+                    <img width="32" height="32" src="{% static 'safe.png' %}" alt="Logo" />
+                    <span>SafeHer</span>
+                </a>
+            </div>
         </div>
-        <div id="mapView" class="flex-1 color-bg-canvas-inverse"></div>
+        <div class="flex-1 d-flex">
+            <div id="directionsContainer" class="d-flex flex-column">
+                <form id="directionsForm" class="px-4 py-3 border-bottom">
+                    <div class="form-group">
+                        <div class="form-group-body">
+                            <input class="form-control input-block" type="text" id="fromLocationInput"
+                                placeholder="From" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-group-body">
+                            <input class="form-control input-block" type="text" id="toLocationInput" placeholder="To" />
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button id="submitButton" class="btn btn-primary" type="submit">Go</button>
+                    </div>
+                </form>
+                <div id="resultsContainer" class="flex-1 overflow-y-auto"></div>
+                <div class="px-2 py-1 border-top text-center text-bold">Developed with ☕ by Team SIGABRT</div>
+            </div>
+            <div class="flex-1 position-relative color-bg-primary">
+                <div id="mapView"></div>
+                <div class="form-checkbox position-absolute top-0 right-0 m-0 pl-5 pr-3 py-2"
+                    style="background-color: var(--color-fade-white-85);">
+                    <label style="cursor: pointer;">
+                        <input id="showClustersCheckbox" type="checkbox" />
+                        Show clusters
+                    </label>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
@@ -68,20 +107,29 @@
     <script type="text/javascript">
         var key = 'Ar6eHNUXk2Llf5e09ghWzMpilyvbxJMKn9spC6ZTUV06f8E12xhzSuJCh3ONjqZY'
 
-        var map, routes = [], sourcePoint, destinationPoint;
+        var map, routes = [], sourcePoint, destinationPoint, isSidebarOpen = false, heatmapLayers = [];
 
         var fromLocationInput = document.getElementById('fromLocationInput');
         var toLocationInput = document.getElementById('toLocationInput');
         var resultsContainer = document.getElementById('resultsContainer');
         var directionsForm = document.getElementById('directionsForm');
+        var menuButton = document.getElementById('menuButton');
+        var directionsContainer = document.getElementById('directionsContainer');
+        var submitButton = document.getElementById('submitButton');
+        var showClustersCheckbox = document.getElementById('showClustersCheckbox');
 
         fromLocationInput.addEventListener('keyup', debounce(onKeyup, 500));
         toLocationInput.addEventListener('keyup', debounce(onKeyup, 500));
         directionsForm.addEventListener('submit', onSubmit);
+        menuButton.addEventListener('click', toggleSidebar);
+        showClustersCheckbox.addEventListener('click', toggleClusters);
 
         function GetMap() {
             map = new Microsoft.Maps.Map('#mapView', {
-                credentials: key
+                credentials: key,
+                showLocateMeButton: false,
+                showMapTypeSelector: false,
+                showZoomButtons: false
             });
 
             map.setView({
@@ -93,7 +141,7 @@
 
             Microsoft.Maps.loadModule('Microsoft.Maps.HeatMap');
 
-            renderClusters();
+            createClusters();
         }
 
         function debounce(func, wait, immediate) {
@@ -158,6 +206,8 @@
             resultsContainer.innerHTML = '';
             map.entities.clear();
 
+            toggleLoading(true);
+
             var url = '/route'
             axios.post(url, {
                 src: fromLocationInput.value,
@@ -170,7 +220,13 @@
                     destinationPoint = routes[0].waypoints[routes[0].waypoints.length - 1];
                     renderRoutes();
                 }
-            })
+
+                toggleLoading(false);
+            }).catch(function (err) {
+                console.error(err);
+
+                toggleLoading(false);
+            });
         }
 
         function renderRoutes() {
@@ -189,8 +245,8 @@
                         <div>min</div>
                     </div>
                     <div class="px-2 py-2 flex-1">
+                        <div>${route.description || 'Route ' + (idx + 1)}</div>
                         ${idx == 0 ? '<div class="color-text-success">Safest Route</div>' : ''}
-                        <div>Route ${idx + 1}</div>
                     </div>
                     <div class="px-2 py-2">
                         ${Math.round(route.distance * 100) / 100}km
@@ -225,8 +281,8 @@
             }
             createPolyline(routes[routeIdx].waypoints, routeIdx, true);
 
-            createPushpin(sourcePoint, '#228b22');
-            createPushpin(destinationPoint, '#ff7722');
+            createPushpin(sourcePoint, { color: '#228b22' });
+            createPushpin(destinationPoint, { color: '#ff7722' });
         }
 
         function createPolyline(waypoints, routeIdx, selected = false) {
@@ -251,20 +307,17 @@
             return polyline;
         }
 
-        function createPushpin(point, color) {
+        function createPushpin(point, options = {}) {
             var location = new Microsoft.Maps.Location(point[0], point[1]);
 
-            var pushpin = new Microsoft.Maps.Pushpin(
-                location,
-                color ? { color } : {}
-            );
+            var pushpin = new Microsoft.Maps.Pushpin(location, options);
 
             map.entities.push(pushpin);
 
             return pushpin;
         }
 
-        function renderClusters() {
+        function createClusters() {
             var url = '/cluster';
             axios.get(url).then(function (response) {
                 var clusters = response.data.clusters;
@@ -275,34 +328,89 @@
                 });
 
                 clusterGroups.forEach(function (clusterGroup, i) {
-                    createHeatMapLayer(
-                        clusterGroup,
-                        0.1 * (i + 2),
-                        125
-                    );
+                    heatmapLayers.push(createHeatMapLayer(clusterGroup));
                 });
             });
         }
 
-        function createHeatMapLayer(clusters, intensity = 0.5, radius = 100) {
+        function createHeatMapLayer(clusters) {
             var locations = clusters.map(function (cluster) {
                 return new Microsoft.Maps.Location(cluster[0], cluster[1]);
             });
 
             var heatmapLayer = new Microsoft.Maps.HeatMapLayer(locations, {
-                colorGradient: {
-                    '0': 'White',
-                    '0.66': 'Yellow',
-                    '1': 'Red'
-                },
-                intensity,
-                opacity: 0.75,
-                radius,
-                unit: 'meters',
-                drawOrder: -100
+                visible: false,
             });
 
             map.layers.insert(heatmapLayer);
+
+            return heatmapLayer;
+        }
+
+        function toggleSidebar() {
+            if (isSidebarOpen) {
+                directionsContainer.classList.remove('open');
+                isSidebarOpen = false;
+            } else {
+                directionsContainer.classList.add('open');
+                isSidebarOpen = true;
+            }
+        }
+
+        function toggleLoading(isLoading) {
+            if (isLoading) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span>Loading</span><span class="AnimatedEllipsis"></span>';
+            } else {
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Go';
+            }
+        }
+
+        function toggleClusters(e) {
+            var isChecked = e.target.checked;
+            if (isChecked) {
+                heatmapLayers.forEach(function (heatmapLayer, i) {
+                    heatmapLayer.setOptions({
+                        colorGradient: {
+                            '0': 'White',
+                            '0.66': 'Yellow',
+                            '1': 'Red'
+                        },
+                        intensity: 0.1 * (i + 2),
+                        opacity: 0.75,
+                        radius: 125,
+                        unit: 'meters',
+                        visible: true,
+                        drawOrder: -100,
+                    });
+                });
+            } else {
+                heatmapLayers.forEach(function (heatmapLayer) {
+                    heatmapLayer.setOptions({ visible: false });
+                });
+            }
+        }
+
+        function simulateDriving() {
+            if (routes.length == 0) return;
+
+            var points = routes[0].waypoints;
+
+            var car = createPushpin(points[0], {
+                icon: '<svg width="32" height="32" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg"><g><title>Layer 1</title><ellipse stroke-width="5" ry="40" rx="40" id="svg_1" cy="45" cx="45" stroke="#36a8ff" fill="#ffffff"/><g><g fill="#ffe62e"><path d="m71.2,40.1s-1.9,2.1 -1.9,3.8l-0.9,-4.3l2.8,0.5"/><path d="m70.3,36.9s2.7,-0.5 3.8,0.5c0.6,0.6 0.9,2.3 0.9,2.3c0,1 -0.8,1.8 -1.9,1.8l-2.8,0c-1,0 -1.9,-0.8 -1.9,-1.8l0,-0.9c0,-1.1 0.9,-1.9 1.9,-1.9"/><path d="m18.8,40.1s1.9,2.1 1.9,3.8l0.9,-4.3l-2.8,0.5"/><path d="m19.7,36.9s-2.7,-0.5 -3.8,0.5c-0.6,0.6 -0.9,2.3 -0.9,2.3c0,1 0.8,1.8 1.9,1.8l2.8,0c1,0 1.9,-0.8 1.9,-1.8l0,-0.9c0,-1.1 -0.9,-1.9 -1.9,-1.9"/></g><path fill="#b2c1c0" d="m53.4,18.5l-16.8,0c-0.5,0 -0.9,0.4 -0.9,0.9l0,1.9c0,0.5 0.4,0.9 0.9,0.9l16.9,0c0.5,0 0.9,-0.4 0.9,-0.9l0,-1.9c0,-0.5 -0.4,-0.9 -1,-0.9"/><g fill="#3e4347"><path d="m71.2,69.1c0,1 -0.8,1.9 -1.9,1.9l-7.5,0c-1,0 -1.9,-0.8 -1.9,-1.9l0,-7.5c0,-1 0.8,-1.9 1.9,-1.9l7.5,0c1,0 1.9,0.8 1.9,1.9l0,7.5"/><path d="m30,69.1c0,1 -0.8,1.9 -1.9,1.9l-7.5,0c-1,0 -1.9,-0.8 -1.9,-1.9l0,-7.5c0,-1 0.8,-1.9 1.9,-1.9l7.5,0c1,0 1.9,0.8 1.9,1.9l0,7.5"/></g><g fill="#ffe62e"><path d="m73.8,51c-1.5,-4.6 -4.1,-7.9 -4.1,-7.9c-5.8,0 -7.2,-7.7 -7.2,-7.7l-35,0s-1.4,7.7 -7.2,7.7c0,0 -2.6,3.4 -4.1,7.9c-0.6,1.8 -0.2,5.9 0,7.8c0.1,1 0.3,3.3 3.5,3.5c6.4,0.4 10.2,1.2 25.4,1.2c15.3,0 18.8,-0.8 25.1,-1.2c3.2,-0.2 3.4,-2.5 3.5,-3.5c0.2,-1.9 0.7,-6 0.1,-7.8"/><path d="m65,25.8c-1.6,-3.3 -3.5,-4 -5.9,-4.4c-3.4,-0.6 -7.1,-0.9 -14.1,-0.9c-7.1,0 -10.7,0.3 -14.1,0.9c-2.4,0.4 -4.3,1.2 -5.9,4.4c-1.9,3.8 -4.4,16.2 -4.4,18.1c0,2 2.1,2.7 4.7,2.7l39.4,0c2.5,0 4.7,-0.7 4.7,-2.7c0,-1.9 -2.5,-14.3 -4.4,-18.1"/></g><path fill="#b2c1c0" d="m29.9,45.7c-0.5,3.1 -3.4,5.6 -6.5,5.6s-5.1,-2.5 -4.6,-5.6c0.5,-3.1 3.4,-5.6 6.5,-5.6s5.1,2.5 4.6,5.6"/><path fill="#fff" d="m28.1,45.7c-0.4,2.1 -2.3,3.8 -4.3,3.8s-3.4,-1.7 -3.1,-3.8c0.3,-2.1 2.3,-3.8 4.3,-3.8c2.1,0 3.4,1.7 3.1,3.8"/><path fill="#3e4347" d="m60.9,24.5c-1,-0.7 -8.3,-1.8 -15.9,-1.8s-15,1.1 -15.9,1.8c-3.7,2.5 -4.7,14.2 -4.7,14.2s1.9,0.9 4.7,0.9c2.2,0 2.8,-1.4 15.9,-1.4s13.7,1.4 15.9,1.4c2.8,0 4.7,-0.9 4.7,-0.9s-1,-11.7 -4.7,-14.2"/><path fill="#b2c1c0" d="m60.1,45.7c0.5,3.1 3.4,5.6 6.5,5.6s5.1,-2.5 4.6,-5.6c-0.5,-3.1 -3.4,-5.6 -6.5,-5.6s-5.1,2.5 -4.6,5.6"/><path fill="#fff" d="m61.9,45.7c0.3,2.1 2.3,3.8 4.3,3.8s3.4,-1.7 3.1,-3.8c-0.3,-2.1 -2.3,-3.8 -4.3,-3.8c-2.1,0 -3.4,1.7 -3.1,3.8"/><path fill="#3e4347" d="m57.7,59.8l-25.3,0c-1,0 -0.2,-1.9 0.6,-2.3c4.4,-2.1 19.4,-1.8 24,0c0.9,0.3 1.7,2.3 0.7,2.3"/><g fill="#fff"><circle r="2.8" cy="56.9" cx="67.5"/><circle r="2.8" cy="56.9" cx="22.5"/></g><g fill="#f15744"><circle r="1.9" cy="56.9" cx="22.5"/><circle r="1.9" cy="56.9" cx="67.5"/></g><path fill="#ffe62e" d="m52.5,11l-15,0c-0.5,0 -0.9,0.4 -0.9,0.9l0,6.6l16.9,0l0,-6.6c-0.1,-0.5 -0.5,-0.9 -1,-0.9"/><path fill="#e8e8e8" d="m54.1,48.7c-0.5,-1.6 -2.4,-3.6 -4,-3.9c-2.5,-0.5 -7.7,-0.5 -10.2,0c-1.7,0.3 -3.5,2.3 -4,3.9l-0.1,0.3c-0.5,1.6 0.4,2.9 2.1,2.9l14.3,0c1.7,0 2.6,-1.3 2.1,-2.9l-0.2,-0.3"/><path fill="#62727a" d="m45,45.8c-1.9,0 -3.7,0.1 -4.8,0.3c-1,0.2 -2.5,1.7 -3,3l-0.1,0.3c-0.1,0.3 -0.1,0.6 0,0.8c0.1,0.2 0.4,0.3 0.7,0.3l14.3,0c0.3,0 0.6,-0.1 0.7,-0.3c0.1,-0.2 0.1,-0.5 0,-0.8l-0.1,-0.3c-0.4,-1.3 -1.9,-2.8 -3,-3c-1,-0.1 -2.8,-0.3 -4.7,-0.3"/><g fill="#e8e8e8"><path d="m38.7,47.7l12.6,0c-0.4,-0.4 -0.8,-0.8 -1.2,-0.9l-10.2,0c-0.4,0.2 -0.8,0.5 -1.2,0.9"/><path d="m37.7,49.3l-0.1,0.3l14.9,0l-0.1,-0.3c-0.1,-0.2 -0.2,-0.4 -0.3,-0.7l-14.1,0c-0.2,0.3 -0.3,0.5 -0.3,0.7"/></g><g fill="#62727a"><path d="m39.5,14.1c0,-0.3 -0.2,-0.5 -0.5,-0.5l-0.1,0c-0.3,0 -0.5,-0.2 -0.5,-0.4s0.2,-0.4 0.5,-0.4l2.1,0c0.3,0 0.5,0.2 0.5,0.4s-0.2,0.4 -0.5,0.4l-0.1,0c-0.3,0 -0.5,0.2 -0.5,0.5l0,2.1c0,0.3 -0.2,0.5 -0.5,0.5s-0.5,-0.2 -0.5,-0.5l0,-2.1l0.1,0z"/><path d="m43.5,15.7c-0.3,0 -0.5,0.2 -0.6,0.4l0,0.1c-0.1,0.2 -0.3,0.4 -0.6,0.4s-0.4,-0.2 -0.3,-0.4l0.9,-2.9c0.1,-0.2 0.4,-0.4 0.6,-0.4l0.2,0c0.3,0 0.5,0.2 0.6,0.4l0.9,2.9c0.1,0.2 -0.1,0.4 -0.3,0.4c-0.3,0 -0.5,-0.2 -0.6,-0.4l0,-0.1c-0.1,-0.2 -0.4,-0.4 -0.6,-0.4l-0.2,0m0.1,-0.7c0.2,0 0.4,-0.2 0.3,-0.4c-0.1,-0.2 -0.2,-0.6 -0.3,-0.8c0,0 0,-0.1 -0.1,-0.3c0,0 -0.1,0.2 -0.1,0.5c0,0 0,0.1 -0.1,0.3l-0.1,0.3c0.1,0.2 0.2,0.4 0.4,0.4"/><path d="m49,16.6c-0.3,0 -0.5,-0.2 -0.6,-0.3c-0.1,-0.2 -0.3,-0.5 -0.4,-0.8l-0.1,-0.3l-0.2,0.4l-0.1,0.3l-0.1,0.3c-0.1,0.2 -0.4,0.4 -0.7,0.4l-0.1,0c-0.3,0 -0.4,-0.2 -0.2,-0.4l0.7,-1.1c0.1,-0.2 0.1,-0.6 0,-0.8l-0.6,-1c-0.1,-0.2 0,-0.4 0.2,-0.4l0.1,0c0.3,0 0.5,0.2 0.6,0.3s0.3,0.5 0.4,0.8l0.1,0.2l0.2,-0.4l0.1,-0.2l0.1,-0.3c0.1,-0.2 0.4,-0.4 0.7,-0.4l0.1,0c0.3,0 0.4,0.2 0.2,0.4l-0.6,1c-0.1,0.2 -0.1,0.6 0,0.8l0.7,1.1c0,0.2 -0.1,0.4 -0.5,0.4"/><path d="m51.1,12.9c0.2,0 0.5,0.2 0.5,0.5l0,2.8c0,0.3 -0.2,0.5 -0.5,0.5s-0.5,-0.2 -0.5,-0.5l0,-2.9c0.1,-0.2 0.3,-0.4 0.5,-0.4"/></g></g></g></svg>',
+                anchor: new Microsoft.Maps.Point(16, 16)
+            });
+
+            points.forEach(function (point, i) {
+                setTimeout(function () {
+                    car.setLocation(new Microsoft.Maps.Location(point[0], point[1]));
+                }, i * 100);
+            });
+
+            setTimeout(function () {
+                map.entities.remove(car);
+            }, points.length * 100);
         }
     </script>
 </body>
