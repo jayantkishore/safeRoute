@@ -47,11 +47,15 @@
         #menuButton:hover {
             fill: var(--color-icon-info);
         }
+
+        #resultsContainer {
+            height: calc(100vh - 48px - 174px - 30px);
+        }
     </style>
 </head>
 
 <body>
-    <div id="root" class="d-flex flex-column">
+    <div id="root" class="d-flex flex-column overflow-hidden">
         <div class="Header py-2">
             <div class="Header-item">
                 <svg id="menuButton" class="octicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16"
@@ -69,34 +73,77 @@
             </div>
         </div>
         <div class="flex-1 d-flex">
-            <div id="directionsContainer" class="d-flex flex-column">
+            <div id="directionsContainer" class="d-flex flex-column overflow-hidden">
                 <form id="directionsForm" class="px-4 py-3 border-bottom">
                     <div class="form-group">
-                        <div class="form-group-body">
-                            <input class="form-control input-block" type="text" id="fromLocationInput"
-                                placeholder="From" />
+                        <div class="form-group-body d-flex flex-items-center flex-nowrap">
+                            <div class="mr-2 d-flex">
+                                <svg width="24" height="24" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img"
+                                    class="iconify iconify--emojione" preserveAspectRatio="xMidYMid meet">
+                                    <path
+                                        d="M62 52c0 5.5-4.5 10-10 10H12C6.5 62 2 57.5 2 52V12C2 6.5 6.5 2 12 2h40c5.5 0 10 4.5 10 10v40z"
+                                        fill="#2ea44f"></path>
+                                    <path
+                                        d="M41.7 46H47L35 14h-6L17 46h5.3l4.2-11.2h11.1L41.7 46zM28.3 30l3.7-9.9l3.7 9.9h-7.4z"
+                                        fill="#fff"></path>
+                                </svg>
+                            </div>
+                            <input class="form-control input-block" type="text" id="originInput" placeholder="From"
+                                required />
                         </div>
                     </div>
                     <div class="form-group">
-                        <div class="form-group-body">
-                            <input class="form-control input-block" type="text" id="toLocationInput" placeholder="To" />
+                        <div class="form-group-body d-flex flex-items-center flex-nowrap">
+                            <div class="mr-2 d-flex">
+                                <svg width="24" height="24" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img"
+                                    class="iconify iconify--emojione" preserveAspectRatio="xMidYMid meet">
+                                    <path
+                                        d="M62 52c0 5.5-4.5 10-10 10H12C6.5 62 2 57.5 2 52V12C2 6.5 6.5 2 12 2h40c5.5 0 10 4.5 10 10v40z"
+                                        fill="#d73a49"></path>
+                                    <path
+                                        d="M43 25.3c0-5.1-4.2-9.2-9.4-9.2L21 16v32h12.6c5.2 0 9.4-4.1 9.4-9.2c0-2.6-1.1-5-3-6.7c1.9-1.8 3-4.2 3-6.8m-9.4 17.6h-7.7v-8.4h7.7c2.4 0 4.3 1.9 4.3 4.2s-1.9 4.2-4.3 4.2m0-13.4h-7.7v-8.4h7.7c2.4 0 4.3 1.9 4.3 4.2c0 2.3-1.9 4.2-4.3 4.2"
+                                        fill="#fff"></path>
+                                </svg>
+                            </div>
+                            <input class="form-control input-block" type="text" id="destinationInput" placeholder="To"
+                                required />
                         </div>
                     </div>
                     <div class="form-actions">
                         <button id="submitButton" class="btn btn-primary" type="submit">Go</button>
                     </div>
                 </form>
-                <div id="resultsContainer" class="flex-1 overflow-y-auto"></div>
-                <div class="px-2 py-1 border-top text-center text-bold">Developed with ☕ by Team SIGABRT</div>
+                <div id="resultsContainer" class="overflow-y-auto"></div>
+                <div class="px-2 py-1 border-top text-center text-bold" style="max-height: 30px;">
+                    Developed with ☕ by Team SIGABRT</div>
             </div>
             <div class="flex-1 position-relative color-bg-primary">
                 <div id="mapView"></div>
-                <div class="form-checkbox position-absolute top-0 right-0 m-0 pl-5 pr-3 py-2"
+                <div class="position-absolute top-0 right-0 px-3 py-2"
                     style="background-color: var(--color-fade-white-85);">
-                    <label style="cursor: pointer;">
-                        <input id="showClustersCheckbox" type="checkbox" />
-                        Show clusters
-                    </label>
+                    <div class="form-checkbox m-0 pl-4">
+                        <label style="cursor: pointer;">
+                            <input id="showClustersCheckbox" type="checkbox" />
+                            Show clusters
+                        </label>
+                    </div>
+                    <div class="mt-2">
+                        <button id="simulationButton" class="btn btn-sm btn-block" type="button">Simulation</button>
+                    </div>
+                </div>
+                <div class="position-absolute bottom-0 right-0 mb-7 mr-2">
+                    <div id="toast" class="Toast Toast--error Toast--animateOut">
+                        <span class="Toast-icon">
+                            <svg width="20" height="20" viewBox="0 0 14 16" class="octicon octicon-stop"
+                                aria-hidden="true">
+                                <path fill-rule="evenodd"
+                                    d="M10 1H4L0 5v6l4 4h6l4-4V5l-4-4zm3 9.5L9.5 14h-5L1 10.5v-5L4.5 2h5L13 5.5v5zM6 4h2v5H6V4zm0 6h2v2H6v-2z" />
+                            </svg>
+                        </span>
+                        <span class="Toast-content f4 text-bold">You are off route.</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -107,22 +154,29 @@
     <script type="text/javascript">
         var key = 'Ar6eHNUXk2Llf5e09ghWzMpilyvbxJMKn9spC6ZTUV06f8E12xhzSuJCh3ONjqZY'
 
-        var map, routes = [], sourcePoint, destinationPoint, isSidebarOpen = false, heatmapLayers = [];
+        var isSidebarOpen = false;
 
-        var fromLocationInput = document.getElementById('fromLocationInput');
-        var toLocationInput = document.getElementById('toLocationInput');
+        var map, routes = [];
+        var heatmapLayers = [], polylineLayer, originPushpin, destinationPushpin;
+        var originIcon, destinationIcon, taxiIcon;
+
+        var originInput = document.getElementById('originInput');
+        var destinationInput = document.getElementById('destinationInput');
         var resultsContainer = document.getElementById('resultsContainer');
         var directionsForm = document.getElementById('directionsForm');
         var menuButton = document.getElementById('menuButton');
         var directionsContainer = document.getElementById('directionsContainer');
         var submitButton = document.getElementById('submitButton');
         var showClustersCheckbox = document.getElementById('showClustersCheckbox');
+        var simulationButton = document.getElementById('simulationButton');
+        var toast = document.getElementById('toast');
 
-        fromLocationInput.addEventListener('keyup', debounce(onKeyup, 500));
-        toLocationInput.addEventListener('keyup', debounce(onKeyup, 500));
+        originInput.addEventListener('keyup', debounce(onKeyup, 500));
+        destinationInput.addEventListener('keyup', debounce(onKeyup, 500));
         directionsForm.addEventListener('submit', onSubmit);
         menuButton.addEventListener('click', toggleSidebar);
         showClustersCheckbox.addEventListener('click', toggleClusters);
+        simulationButton.addEventListener('click', simulateDriving);
 
         function GetMap() {
             map = new Microsoft.Maps.Map('#mapView', {
@@ -139,9 +193,23 @@
                 )
             });
 
-            Microsoft.Maps.loadModule('Microsoft.Maps.HeatMap');
+            Microsoft.Maps.loadModule('Microsoft.Maps.HeatMap', createClusters);
 
-            createClusters();
+            polylineLayer = new Microsoft.Maps.Layer();
+            map.layers.insert(polylineLayer);
+
+            originIcon = {
+                icon: '<svg width="24" height="24" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--emojione" preserveAspectRatio="xMidYMid meet"><path d="M62 52c0 5.5-4.5 10-10 10H12C6.5 62 2 57.5 2 52V12C2 6.5 6.5 2 12 2h40c5.5 0 10 4.5 10 10v40z" fill="#2ea44f"></path><path d="M41.7 46H47L35 14h-6L17 46h5.3l4.2-11.2h11.1L41.7 46zM28.3 30l3.7-9.9l3.7 9.9h-7.4z" fill="#fff"></path></svg>',
+                anchor: new Microsoft.Maps.Point(12, 12)
+            };
+            destinationIcon = {
+                icon: '<svg width="24" height="24" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--emojione" preserveAspectRatio="xMidYMid meet"><path d="M62 52c0 5.5-4.5 10-10 10H12C6.5 62 2 57.5 2 52V12C2 6.5 6.5 2 12 2h40c5.5 0 10 4.5 10 10v40z" fill="#d73a49"></path><path d="M43 25.3c0-5.1-4.2-9.2-9.4-9.2L21 16v32h12.6c5.2 0 9.4-4.1 9.4-9.2c0-2.6-1.1-5-3-6.7c1.9-1.8 3-4.2 3-6.8m-9.4 17.6h-7.7v-8.4h7.7c2.4 0 4.3 1.9 4.3 4.2s-1.9 4.2-4.3 4.2m0-13.4h-7.7v-8.4h7.7c2.4 0 4.3 1.9 4.3 4.2c0 2.3-1.9 4.2-4.3 4.2" fill="#fff"></path></svg>',
+                anchor: new Microsoft.Maps.Point(12, 12)
+            };
+            taxiIcon = {
+                icon: '<svg width="32" height="32" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg"><g><title>Layer 1</title><ellipse stroke-width="5" ry="40" rx="40" id="svg_1" cy="45" cx="45" stroke="#36a8ff" fill="#ffffff"/><g><g fill="#ffe62e"><path d="m71.2,40.1s-1.9,2.1 -1.9,3.8l-0.9,-4.3l2.8,0.5"/><path d="m70.3,36.9s2.7,-0.5 3.8,0.5c0.6,0.6 0.9,2.3 0.9,2.3c0,1 -0.8,1.8 -1.9,1.8l-2.8,0c-1,0 -1.9,-0.8 -1.9,-1.8l0,-0.9c0,-1.1 0.9,-1.9 1.9,-1.9"/><path d="m18.8,40.1s1.9,2.1 1.9,3.8l0.9,-4.3l-2.8,0.5"/><path d="m19.7,36.9s-2.7,-0.5 -3.8,0.5c-0.6,0.6 -0.9,2.3 -0.9,2.3c0,1 0.8,1.8 1.9,1.8l2.8,0c1,0 1.9,-0.8 1.9,-1.8l0,-0.9c0,-1.1 -0.9,-1.9 -1.9,-1.9"/></g><path fill="#b2c1c0" d="m53.4,18.5l-16.8,0c-0.5,0 -0.9,0.4 -0.9,0.9l0,1.9c0,0.5 0.4,0.9 0.9,0.9l16.9,0c0.5,0 0.9,-0.4 0.9,-0.9l0,-1.9c0,-0.5 -0.4,-0.9 -1,-0.9"/><g fill="#3e4347"><path d="m71.2,69.1c0,1 -0.8,1.9 -1.9,1.9l-7.5,0c-1,0 -1.9,-0.8 -1.9,-1.9l0,-7.5c0,-1 0.8,-1.9 1.9,-1.9l7.5,0c1,0 1.9,0.8 1.9,1.9l0,7.5"/><path d="m30,69.1c0,1 -0.8,1.9 -1.9,1.9l-7.5,0c-1,0 -1.9,-0.8 -1.9,-1.9l0,-7.5c0,-1 0.8,-1.9 1.9,-1.9l7.5,0c1,0 1.9,0.8 1.9,1.9l0,7.5"/></g><g fill="#ffe62e"><path d="m73.8,51c-1.5,-4.6 -4.1,-7.9 -4.1,-7.9c-5.8,0 -7.2,-7.7 -7.2,-7.7l-35,0s-1.4,7.7 -7.2,7.7c0,0 -2.6,3.4 -4.1,7.9c-0.6,1.8 -0.2,5.9 0,7.8c0.1,1 0.3,3.3 3.5,3.5c6.4,0.4 10.2,1.2 25.4,1.2c15.3,0 18.8,-0.8 25.1,-1.2c3.2,-0.2 3.4,-2.5 3.5,-3.5c0.2,-1.9 0.7,-6 0.1,-7.8"/><path d="m65,25.8c-1.6,-3.3 -3.5,-4 -5.9,-4.4c-3.4,-0.6 -7.1,-0.9 -14.1,-0.9c-7.1,0 -10.7,0.3 -14.1,0.9c-2.4,0.4 -4.3,1.2 -5.9,4.4c-1.9,3.8 -4.4,16.2 -4.4,18.1c0,2 2.1,2.7 4.7,2.7l39.4,0c2.5,0 4.7,-0.7 4.7,-2.7c0,-1.9 -2.5,-14.3 -4.4,-18.1"/></g><path fill="#b2c1c0" d="m29.9,45.7c-0.5,3.1 -3.4,5.6 -6.5,5.6s-5.1,-2.5 -4.6,-5.6c0.5,-3.1 3.4,-5.6 6.5,-5.6s5.1,2.5 4.6,5.6"/><path fill="#fff" d="m28.1,45.7c-0.4,2.1 -2.3,3.8 -4.3,3.8s-3.4,-1.7 -3.1,-3.8c0.3,-2.1 2.3,-3.8 4.3,-3.8c2.1,0 3.4,1.7 3.1,3.8"/><path fill="#3e4347" d="m60.9,24.5c-1,-0.7 -8.3,-1.8 -15.9,-1.8s-15,1.1 -15.9,1.8c-3.7,2.5 -4.7,14.2 -4.7,14.2s1.9,0.9 4.7,0.9c2.2,0 2.8,-1.4 15.9,-1.4s13.7,1.4 15.9,1.4c2.8,0 4.7,-0.9 4.7,-0.9s-1,-11.7 -4.7,-14.2"/><path fill="#b2c1c0" d="m60.1,45.7c0.5,3.1 3.4,5.6 6.5,5.6s5.1,-2.5 4.6,-5.6c-0.5,-3.1 -3.4,-5.6 -6.5,-5.6s-5.1,2.5 -4.6,5.6"/><path fill="#fff" d="m61.9,45.7c0.3,2.1 2.3,3.8 4.3,3.8s3.4,-1.7 3.1,-3.8c-0.3,-2.1 -2.3,-3.8 -4.3,-3.8c-2.1,0 -3.4,1.7 -3.1,3.8"/><path fill="#3e4347" d="m57.7,59.8l-25.3,0c-1,0 -0.2,-1.9 0.6,-2.3c4.4,-2.1 19.4,-1.8 24,0c0.9,0.3 1.7,2.3 0.7,2.3"/><g fill="#fff"><circle r="2.8" cy="56.9" cx="67.5"/><circle r="2.8" cy="56.9" cx="22.5"/></g><g fill="#f15744"><circle r="1.9" cy="56.9" cx="22.5"/><circle r="1.9" cy="56.9" cx="67.5"/></g><path fill="#ffe62e" d="m52.5,11l-15,0c-0.5,0 -0.9,0.4 -0.9,0.9l0,6.6l16.9,0l0,-6.6c-0.1,-0.5 -0.5,-0.9 -1,-0.9"/><path fill="#e8e8e8" d="m54.1,48.7c-0.5,-1.6 -2.4,-3.6 -4,-3.9c-2.5,-0.5 -7.7,-0.5 -10.2,0c-1.7,0.3 -3.5,2.3 -4,3.9l-0.1,0.3c-0.5,1.6 0.4,2.9 2.1,2.9l14.3,0c1.7,0 2.6,-1.3 2.1,-2.9l-0.2,-0.3"/><path fill="#62727a" d="m45,45.8c-1.9,0 -3.7,0.1 -4.8,0.3c-1,0.2 -2.5,1.7 -3,3l-0.1,0.3c-0.1,0.3 -0.1,0.6 0,0.8c0.1,0.2 0.4,0.3 0.7,0.3l14.3,0c0.3,0 0.6,-0.1 0.7,-0.3c0.1,-0.2 0.1,-0.5 0,-0.8l-0.1,-0.3c-0.4,-1.3 -1.9,-2.8 -3,-3c-1,-0.1 -2.8,-0.3 -4.7,-0.3"/><g fill="#e8e8e8"><path d="m38.7,47.7l12.6,0c-0.4,-0.4 -0.8,-0.8 -1.2,-0.9l-10.2,0c-0.4,0.2 -0.8,0.5 -1.2,0.9"/><path d="m37.7,49.3l-0.1,0.3l14.9,0l-0.1,-0.3c-0.1,-0.2 -0.2,-0.4 -0.3,-0.7l-14.1,0c-0.2,0.3 -0.3,0.5 -0.3,0.7"/></g><g fill="#62727a"><path d="m39.5,14.1c0,-0.3 -0.2,-0.5 -0.5,-0.5l-0.1,0c-0.3,0 -0.5,-0.2 -0.5,-0.4s0.2,-0.4 0.5,-0.4l2.1,0c0.3,0 0.5,0.2 0.5,0.4s-0.2,0.4 -0.5,0.4l-0.1,0c-0.3,0 -0.5,0.2 -0.5,0.5l0,2.1c0,0.3 -0.2,0.5 -0.5,0.5s-0.5,-0.2 -0.5,-0.5l0,-2.1l0.1,0z"/><path d="m43.5,15.7c-0.3,0 -0.5,0.2 -0.6,0.4l0,0.1c-0.1,0.2 -0.3,0.4 -0.6,0.4s-0.4,-0.2 -0.3,-0.4l0.9,-2.9c0.1,-0.2 0.4,-0.4 0.6,-0.4l0.2,0c0.3,0 0.5,0.2 0.6,0.4l0.9,2.9c0.1,0.2 -0.1,0.4 -0.3,0.4c-0.3,0 -0.5,-0.2 -0.6,-0.4l0,-0.1c-0.1,-0.2 -0.4,-0.4 -0.6,-0.4l-0.2,0m0.1,-0.7c0.2,0 0.4,-0.2 0.3,-0.4c-0.1,-0.2 -0.2,-0.6 -0.3,-0.8c0,0 0,-0.1 -0.1,-0.3c0,0 -0.1,0.2 -0.1,0.5c0,0 0,0.1 -0.1,0.3l-0.1,0.3c0.1,0.2 0.2,0.4 0.4,0.4"/><path d="m49,16.6c-0.3,0 -0.5,-0.2 -0.6,-0.3c-0.1,-0.2 -0.3,-0.5 -0.4,-0.8l-0.1,-0.3l-0.2,0.4l-0.1,0.3l-0.1,0.3c-0.1,0.2 -0.4,0.4 -0.7,0.4l-0.1,0c-0.3,0 -0.4,-0.2 -0.2,-0.4l0.7,-1.1c0.1,-0.2 0.1,-0.6 0,-0.8l-0.6,-1c-0.1,-0.2 0,-0.4 0.2,-0.4l0.1,0c0.3,0 0.5,0.2 0.6,0.3s0.3,0.5 0.4,0.8l0.1,0.2l0.2,-0.4l0.1,-0.2l0.1,-0.3c0.1,-0.2 0.4,-0.4 0.7,-0.4l0.1,0c0.3,0 0.4,0.2 0.2,0.4l-0.6,1c-0.1,0.2 -0.1,0.6 0,0.8l0.7,1.1c0,0.2 -0.1,0.4 -0.5,0.4"/><path d="m51.1,12.9c0.2,0 0.5,0.2 0.5,0.5l0,2.8c0,0.3 -0.2,0.5 -0.5,0.5s-0.5,-0.2 -0.5,-0.5l0,-2.9c0.1,-0.2 0.3,-0.4 0.5,-0.4"/></g></g></g></svg>',
+                anchor: new Microsoft.Maps.Point(16, 16)
+            };
         }
 
         function debounce(func, wait, immediate) {
@@ -190,8 +258,7 @@
                     + suggestion.address.formattedAddress;
 
                 suggestionListItem.addEventListener('click', function () {
-                    inputEl.value = suggestionListItem.innerHTML;
-                    resultsContainer.innerHTML = '';
+                    onSuggestionClick(suggestionListItem.innerHTML, inputEl);
                 });
 
                 suggestionList.appendChild(suggestionListItem);
@@ -204,20 +271,18 @@
             e.preventDefault();
 
             resultsContainer.innerHTML = '';
-            map.entities.clear();
+            polylineLayer.clear();
 
             toggleLoading(true);
 
             var url = '/route'
             axios.post(url, {
-                src: fromLocationInput.value,
-                dst: toLocationInput.value,
+                src: originInput.value,
+                dst: destinationInput.value,
             }).then(function (response) {
                 routes = response.data;
                 // console.log('Routes', routes);
                 if (routes.length > 0) {
-                    sourcePoint = routes[0].waypoints[0];
-                    destinationPoint = routes[0].waypoints[routes[0].waypoints.length - 1];
                     renderRoutes();
                 }
 
@@ -230,13 +295,11 @@
         }
 
         function renderRoutes() {
-            resultsContainer.innerHTML = '';
-
             var routeList = document.createElement('div');
             routeList.className = 'route-list';
             routes.forEach(function (route, idx) {
                 var routeListItem = document.createElement('div');
-                routeListItem.className = 'route-list-item border-bottom d-flex';
+                routeListItem.className = 'route-list-item border-bottom d-flex flex-nowrap';
                 routeListItem.innerHTML = `
                     <div class="px-3 py-2 text-center lh-condensed" style="background-color: var(--color-fade-black-10);">
                         <div class="f3">
@@ -266,7 +329,7 @@
         }
 
         function selectRoute(routeIdx) {
-            map.entities.clear();
+            polylineLayer.clear();
 
             var routeListItems = document.getElementsByClassName('route-list-item');
             for (var i = 0; i < routes.length; i++) {
@@ -281,8 +344,11 @@
             }
             createPolyline(routes[routeIdx].waypoints, routeIdx, true);
 
-            createPushpin(sourcePoint, { color: '#228b22' });
-            createPushpin(destinationPoint, { color: '#ff7722' });
+            var originPoint = routes[routeIdx].waypoints[0];
+            setOriginPushpin(originPoint);
+
+            var destinationPoint = routes[routeIdx].waypoints[routes[routeIdx].waypoints.length - 1];
+            setDestinationPushpin(destinationPoint);
         }
 
         function createPolyline(waypoints, routeIdx, selected = false) {
@@ -298,7 +364,7 @@
                 secondaryStrokeThickness: 7,
             });
 
-            map.entities.push(polyline);
+            polylineLayer.add(polyline);
 
             Microsoft.Maps.Events.addHandler(polyline, 'click', function () {
                 selectRoute(routeIdx);
@@ -322,9 +388,17 @@
             axios.get(url).then(function (response) {
                 var clusters = response.data.clusters;
 
+                clusters.sort(function (a, b) {
+                    if (a[2] == b[2]) {
+                        return 0;
+                    }
+                    return (a[2] < b[2]) ? -1 : 1;
+                });
+
                 var clusterGroups = [[], [], [], []];
-                clusters.forEach(function (cluster) {
-                    clusterGroups[Math.max(Math.ceil(cluster[2]) - 2, 0)].push(cluster);
+                var groupLen = Math.floor(clusters.length / clusterGroups.length);
+                clusters.forEach(function (cluster, i) {
+                    clusterGroups[Math.min(Math.floor(i / groupLen), clusterGroups.length - 1)].push(cluster);
                 });
 
                 clusterGroups.forEach(function (clusterGroup, i) {
@@ -368,21 +442,49 @@
         }
 
         function toggleClusters(e) {
+            var options = [
+                {
+                    colorGradient: {
+                        '0': 'Yellow',
+                        '1': 'Orange'
+                    },
+                    intensity: 1,
+                    radius: 10,
+                },
+                {
+                    colorGradient: {
+                        '0': 'Yellow',
+                        '1': 'Orange'
+                    },
+                    intensity: 1,
+                    radius: 10,
+                },
+                {
+                    colorGradient: {
+                        '0': 'Orange',
+                        '1': 'Red'
+                    },
+                    intensity: 1,
+                    radius: 10,
+                },
+                {
+                    colorGradient: {
+                        '0': 'Red',
+                        '1': 'Brown'
+                    },
+                    intensity: 1,
+                    radius: 10,
+                },
+            ];
+
             var isChecked = e.target.checked;
             if (isChecked) {
                 heatmapLayers.forEach(function (heatmapLayer, i) {
                     heatmapLayer.setOptions({
-                        colorGradient: {
-                            '0': 'White',
-                            '0.66': 'Yellow',
-                            '1': 'Red'
-                        },
-                        intensity: 0.1 * (i + 2),
-                        opacity: 0.75,
-                        radius: 125,
-                        unit: 'meters',
+                        opacity: 1,
+                        unit: 'pixels',
                         visible: true,
-                        drawOrder: -100,
+                        ...options[i],
                     });
                 });
             } else {
@@ -395,22 +497,107 @@
         function simulateDriving() {
             if (routes.length == 0) return;
 
-            var points = routes[0].waypoints;
+            simulationButton.disabled = true;
 
-            var car = createPushpin(points[0], {
-                icon: '<svg width="32" height="32" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg"><g><title>Layer 1</title><ellipse stroke-width="5" ry="40" rx="40" id="svg_1" cy="45" cx="45" stroke="#36a8ff" fill="#ffffff"/><g><g fill="#ffe62e"><path d="m71.2,40.1s-1.9,2.1 -1.9,3.8l-0.9,-4.3l2.8,0.5"/><path d="m70.3,36.9s2.7,-0.5 3.8,0.5c0.6,0.6 0.9,2.3 0.9,2.3c0,1 -0.8,1.8 -1.9,1.8l-2.8,0c-1,0 -1.9,-0.8 -1.9,-1.8l0,-0.9c0,-1.1 0.9,-1.9 1.9,-1.9"/><path d="m18.8,40.1s1.9,2.1 1.9,3.8l0.9,-4.3l-2.8,0.5"/><path d="m19.7,36.9s-2.7,-0.5 -3.8,0.5c-0.6,0.6 -0.9,2.3 -0.9,2.3c0,1 0.8,1.8 1.9,1.8l2.8,0c1,0 1.9,-0.8 1.9,-1.8l0,-0.9c0,-1.1 -0.9,-1.9 -1.9,-1.9"/></g><path fill="#b2c1c0" d="m53.4,18.5l-16.8,0c-0.5,0 -0.9,0.4 -0.9,0.9l0,1.9c0,0.5 0.4,0.9 0.9,0.9l16.9,0c0.5,0 0.9,-0.4 0.9,-0.9l0,-1.9c0,-0.5 -0.4,-0.9 -1,-0.9"/><g fill="#3e4347"><path d="m71.2,69.1c0,1 -0.8,1.9 -1.9,1.9l-7.5,0c-1,0 -1.9,-0.8 -1.9,-1.9l0,-7.5c0,-1 0.8,-1.9 1.9,-1.9l7.5,0c1,0 1.9,0.8 1.9,1.9l0,7.5"/><path d="m30,69.1c0,1 -0.8,1.9 -1.9,1.9l-7.5,0c-1,0 -1.9,-0.8 -1.9,-1.9l0,-7.5c0,-1 0.8,-1.9 1.9,-1.9l7.5,0c1,0 1.9,0.8 1.9,1.9l0,7.5"/></g><g fill="#ffe62e"><path d="m73.8,51c-1.5,-4.6 -4.1,-7.9 -4.1,-7.9c-5.8,0 -7.2,-7.7 -7.2,-7.7l-35,0s-1.4,7.7 -7.2,7.7c0,0 -2.6,3.4 -4.1,7.9c-0.6,1.8 -0.2,5.9 0,7.8c0.1,1 0.3,3.3 3.5,3.5c6.4,0.4 10.2,1.2 25.4,1.2c15.3,0 18.8,-0.8 25.1,-1.2c3.2,-0.2 3.4,-2.5 3.5,-3.5c0.2,-1.9 0.7,-6 0.1,-7.8"/><path d="m65,25.8c-1.6,-3.3 -3.5,-4 -5.9,-4.4c-3.4,-0.6 -7.1,-0.9 -14.1,-0.9c-7.1,0 -10.7,0.3 -14.1,0.9c-2.4,0.4 -4.3,1.2 -5.9,4.4c-1.9,3.8 -4.4,16.2 -4.4,18.1c0,2 2.1,2.7 4.7,2.7l39.4,0c2.5,0 4.7,-0.7 4.7,-2.7c0,-1.9 -2.5,-14.3 -4.4,-18.1"/></g><path fill="#b2c1c0" d="m29.9,45.7c-0.5,3.1 -3.4,5.6 -6.5,5.6s-5.1,-2.5 -4.6,-5.6c0.5,-3.1 3.4,-5.6 6.5,-5.6s5.1,2.5 4.6,5.6"/><path fill="#fff" d="m28.1,45.7c-0.4,2.1 -2.3,3.8 -4.3,3.8s-3.4,-1.7 -3.1,-3.8c0.3,-2.1 2.3,-3.8 4.3,-3.8c2.1,0 3.4,1.7 3.1,3.8"/><path fill="#3e4347" d="m60.9,24.5c-1,-0.7 -8.3,-1.8 -15.9,-1.8s-15,1.1 -15.9,1.8c-3.7,2.5 -4.7,14.2 -4.7,14.2s1.9,0.9 4.7,0.9c2.2,0 2.8,-1.4 15.9,-1.4s13.7,1.4 15.9,1.4c2.8,0 4.7,-0.9 4.7,-0.9s-1,-11.7 -4.7,-14.2"/><path fill="#b2c1c0" d="m60.1,45.7c0.5,3.1 3.4,5.6 6.5,5.6s5.1,-2.5 4.6,-5.6c-0.5,-3.1 -3.4,-5.6 -6.5,-5.6s-5.1,2.5 -4.6,5.6"/><path fill="#fff" d="m61.9,45.7c0.3,2.1 2.3,3.8 4.3,3.8s3.4,-1.7 3.1,-3.8c-0.3,-2.1 -2.3,-3.8 -4.3,-3.8c-2.1,0 -3.4,1.7 -3.1,3.8"/><path fill="#3e4347" d="m57.7,59.8l-25.3,0c-1,0 -0.2,-1.9 0.6,-2.3c4.4,-2.1 19.4,-1.8 24,0c0.9,0.3 1.7,2.3 0.7,2.3"/><g fill="#fff"><circle r="2.8" cy="56.9" cx="67.5"/><circle r="2.8" cy="56.9" cx="22.5"/></g><g fill="#f15744"><circle r="1.9" cy="56.9" cx="22.5"/><circle r="1.9" cy="56.9" cx="67.5"/></g><path fill="#ffe62e" d="m52.5,11l-15,0c-0.5,0 -0.9,0.4 -0.9,0.9l0,6.6l16.9,0l0,-6.6c-0.1,-0.5 -0.5,-0.9 -1,-0.9"/><path fill="#e8e8e8" d="m54.1,48.7c-0.5,-1.6 -2.4,-3.6 -4,-3.9c-2.5,-0.5 -7.7,-0.5 -10.2,0c-1.7,0.3 -3.5,2.3 -4,3.9l-0.1,0.3c-0.5,1.6 0.4,2.9 2.1,2.9l14.3,0c1.7,0 2.6,-1.3 2.1,-2.9l-0.2,-0.3"/><path fill="#62727a" d="m45,45.8c-1.9,0 -3.7,0.1 -4.8,0.3c-1,0.2 -2.5,1.7 -3,3l-0.1,0.3c-0.1,0.3 -0.1,0.6 0,0.8c0.1,0.2 0.4,0.3 0.7,0.3l14.3,0c0.3,0 0.6,-0.1 0.7,-0.3c0.1,-0.2 0.1,-0.5 0,-0.8l-0.1,-0.3c-0.4,-1.3 -1.9,-2.8 -3,-3c-1,-0.1 -2.8,-0.3 -4.7,-0.3"/><g fill="#e8e8e8"><path d="m38.7,47.7l12.6,0c-0.4,-0.4 -0.8,-0.8 -1.2,-0.9l-10.2,0c-0.4,0.2 -0.8,0.5 -1.2,0.9"/><path d="m37.7,49.3l-0.1,0.3l14.9,0l-0.1,-0.3c-0.1,-0.2 -0.2,-0.4 -0.3,-0.7l-14.1,0c-0.2,0.3 -0.3,0.5 -0.3,0.7"/></g><g fill="#62727a"><path d="m39.5,14.1c0,-0.3 -0.2,-0.5 -0.5,-0.5l-0.1,0c-0.3,0 -0.5,-0.2 -0.5,-0.4s0.2,-0.4 0.5,-0.4l2.1,0c0.3,0 0.5,0.2 0.5,0.4s-0.2,0.4 -0.5,0.4l-0.1,0c-0.3,0 -0.5,0.2 -0.5,0.5l0,2.1c0,0.3 -0.2,0.5 -0.5,0.5s-0.5,-0.2 -0.5,-0.5l0,-2.1l0.1,0z"/><path d="m43.5,15.7c-0.3,0 -0.5,0.2 -0.6,0.4l0,0.1c-0.1,0.2 -0.3,0.4 -0.6,0.4s-0.4,-0.2 -0.3,-0.4l0.9,-2.9c0.1,-0.2 0.4,-0.4 0.6,-0.4l0.2,0c0.3,0 0.5,0.2 0.6,0.4l0.9,2.9c0.1,0.2 -0.1,0.4 -0.3,0.4c-0.3,0 -0.5,-0.2 -0.6,-0.4l0,-0.1c-0.1,-0.2 -0.4,-0.4 -0.6,-0.4l-0.2,0m0.1,-0.7c0.2,0 0.4,-0.2 0.3,-0.4c-0.1,-0.2 -0.2,-0.6 -0.3,-0.8c0,0 0,-0.1 -0.1,-0.3c0,0 -0.1,0.2 -0.1,0.5c0,0 0,0.1 -0.1,0.3l-0.1,0.3c0.1,0.2 0.2,0.4 0.4,0.4"/><path d="m49,16.6c-0.3,0 -0.5,-0.2 -0.6,-0.3c-0.1,-0.2 -0.3,-0.5 -0.4,-0.8l-0.1,-0.3l-0.2,0.4l-0.1,0.3l-0.1,0.3c-0.1,0.2 -0.4,0.4 -0.7,0.4l-0.1,0c-0.3,0 -0.4,-0.2 -0.2,-0.4l0.7,-1.1c0.1,-0.2 0.1,-0.6 0,-0.8l-0.6,-1c-0.1,-0.2 0,-0.4 0.2,-0.4l0.1,0c0.3,0 0.5,0.2 0.6,0.3s0.3,0.5 0.4,0.8l0.1,0.2l0.2,-0.4l0.1,-0.2l0.1,-0.3c0.1,-0.2 0.4,-0.4 0.7,-0.4l0.1,0c0.3,0 0.4,0.2 0.2,0.4l-0.6,1c-0.1,0.2 -0.1,0.6 0,0.8l0.7,1.1c0,0.2 -0.1,0.4 -0.5,0.4"/><path d="m51.1,12.9c0.2,0 0.5,0.2 0.5,0.5l0,2.8c0,0.3 -0.2,0.5 -0.5,0.5s-0.5,-0.2 -0.5,-0.5l0,-2.9c0.1,-0.2 0.3,-0.4 0.5,-0.4"/></g></g></g></svg>',
-                anchor: new Microsoft.Maps.Point(16, 16)
+            var points;
+
+            var randNum = Math.floor(Math.random() * 3);
+            if (randNum > 0) {
+                var randRouteIdx = Math.floor(Math.random() * (routes.length - 1)) + 1;
+                points = routes[randRouteIdx].waypoints;
+            } else {
+                points = routes[0].waypoints;
+            }
+
+            var taxi = createPushpin(points[0], {
+                icon: taxiIcon.icon,
+                anchor: taxiIcon.anchor
             });
 
             points.forEach(function (point, i) {
                 setTimeout(function () {
-                    car.setLocation(new Microsoft.Maps.Location(point[0], point[1]));
+                    var bbox = findBoundingBox(point[0], point[1], 0.5, 0.5);
+
+                    var onRoute = routes[0].waypoints.some(function (point) {
+                        return inBoundingBox(point[0], point[1], bbox);
+                    });
+                    if (onRoute) {
+                        toast.classList.remove('Toast--animateIn');
+                        toast.classList.add('Toast--animateOut');
+                    } else {
+                        toast.classList.remove('Toast--animateOut');
+                        toast.classList.add('Toast--animateIn');
+                    }
+
+                    taxi.setLocation(new Microsoft.Maps.Location(point[0], point[1]));
                 }, i * 100);
             });
 
             setTimeout(function () {
-                map.entities.remove(car);
+                map.entities.remove(taxi);
+                simulationButton.disabled = false;
             }, points.length * 100);
+        }
+
+        function findBoundingBox(latitude, longitude, dy, dx) {
+            var r_earth = 6378;
+
+            return [
+                latitude - (dy / r_earth) * (180 / Math.PI),
+                longitude - (dx / r_earth) * (180 / Math.PI) / Math.cos(latitude * Math.PI / 180),
+                latitude + (dy / r_earth) * (180 / Math.PI),
+                longitude + (dx / r_earth) * (180 / Math.PI) / Math.cos(latitude * Math.PI / 180),
+            ];
+        }
+
+        function inBoundingBox(latitude, longitude, bbox) {
+            return bbox[0] <= latitude && latitude <= bbox[2]
+                && bbox[1] <= longitude && longitude <= bbox[3];
+        }
+
+        function onSuggestionClick(address, inputEl) {
+            inputEl.value = address;
+
+            resultsContainer.innerHTML = '';
+            polylineLayer.clear();
+
+            var url = 'https://dev.virtualearth.net/REST/v1/Locations'
+            axios.get(url, {
+                params: {
+                    query: address,
+                    key
+                }
+            }).then(function (response) {
+                var point = response.data.resourceSets[0].resources[0].point.coordinates;
+                if (inputEl.id === originInput.id) {
+                    setOriginPushpin(point);
+                }
+                if (inputEl.id === destinationInput.id) {
+                    setDestinationPushpin(point);
+                }
+            })
+        }
+
+        function setOriginPushpin(point) {
+            if (originPushpin) {
+                originPushpin.setLocation(new Microsoft.Maps.Location(point[0], point[1]));
+            } else {
+                originPushpin = createPushpin(point, {
+                    icon: originIcon.icon,
+                    anchor: originIcon.anchor
+                });
+            }
+        }
+
+        function setDestinationPushpin(point) {
+            if (destinationPushpin) {
+                destinationPushpin.setLocation(new Microsoft.Maps.Location(point[0], point[1]));
+            } else {
+                destinationPushpin = createPushpin(point, {
+                    icon: destinationIcon.icon,
+                    anchor: destinationIcon.anchor
+                });
+            }
         }
     </script>
 </body>
