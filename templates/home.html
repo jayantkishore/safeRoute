@@ -133,16 +133,16 @@
                         <button id="simulationButton" class="btn btn-sm btn-block" type="button">Simulation</button>
                     </div>
                 </div>
-                <div class="position-absolute bottom-0 right-0 mb-3 mr-3">
+                <div class="position-absolute bottom-0 right-0 mb-7 mr-2">
                     <div id="toast" class="Toast Toast--error Toast--animateOut">
                         <span class="Toast-icon">
-                            <svg width="14" height="16" viewBox="0 0 14 16" class="octicon octicon-stop"
+                            <svg width="20" height="20" viewBox="0 0 14 16" class="octicon octicon-stop"
                                 aria-hidden="true">
                                 <path fill-rule="evenodd"
                                     d="M10 1H4L0 5v6l4 4h6l4-4V5l-4-4zm3 9.5L9.5 14h-5L1 10.5v-5L4.5 2h5L13 5.5v5zM6 4h2v5H6V4zm0 6h2v2H6v-2z" />
                             </svg>
                         </span>
-                        <span class="Toast-content">You are off route.</span>
+                        <span class="Toast-content f4 text-bold">You are off route.</span>
                     </div>
                 </div>
             </div>
@@ -193,9 +193,7 @@
                 )
             });
 
-            Microsoft.Maps.loadModule('Microsoft.Maps.HeatMap');
-
-            createClusters();
+            Microsoft.Maps.loadModule('Microsoft.Maps.HeatMap', createClusters);
 
             polylineLayer = new Microsoft.Maps.Layer();
             map.layers.insert(polylineLayer);
@@ -390,9 +388,17 @@
             axios.get(url).then(function (response) {
                 var clusters = response.data.clusters;
 
+                clusters.sort(function (a, b) {
+                    if (a[2] == b[2]) {
+                        return 0;
+                    }
+                    return (a[2] < b[2]) ? -1 : 1;
+                });
+
                 var clusterGroups = [[], [], [], []];
-                clusters.forEach(function (cluster) {
-                    clusterGroups[Math.max(Math.ceil(cluster[2]) - 2, 0)].push(cluster);
+                var groupLen = Math.floor(clusters.length / clusterGroups.length);
+                clusters.forEach(function (cluster, i) {
+                    clusterGroups[Math.min(Math.floor(i / groupLen), clusterGroups.length - 1)].push(cluster);
                 });
 
                 clusterGroups.forEach(function (clusterGroup, i) {
@@ -436,20 +442,49 @@
         }
 
         function toggleClusters(e) {
+            var options = [
+                {
+                    colorGradient: {
+                        '0': 'Yellow',
+                        '1': 'Orange'
+                    },
+                    intensity: 1,
+                    radius: 10,
+                },
+                {
+                    colorGradient: {
+                        '0': 'Yellow',
+                        '1': 'Orange'
+                    },
+                    intensity: 1,
+                    radius: 10,
+                },
+                {
+                    colorGradient: {
+                        '0': 'Orange',
+                        '1': 'Red'
+                    },
+                    intensity: 1,
+                    radius: 10,
+                },
+                {
+                    colorGradient: {
+                        '0': 'Red',
+                        '1': 'Brown'
+                    },
+                    intensity: 1,
+                    radius: 10,
+                },
+            ];
+
             var isChecked = e.target.checked;
             if (isChecked) {
                 heatmapLayers.forEach(function (heatmapLayer, i) {
                     heatmapLayer.setOptions({
-                        colorGradient: {
-                            '0': 'Yellow',
-                            '0.6': 'Red',
-                            '1': 'Brown'
-                        },
-                        intensity: 0.1 * (i + 5),
                         opacity: 1,
-                        radius: 10,
                         unit: 'pixels',
                         visible: true,
+                        ...options[i],
                     });
                 });
             } else {
