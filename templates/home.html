@@ -130,7 +130,16 @@
                         </label>
                     </div>
                     <div class="mt-2">
-                        <button id="simulationButton" class="btn btn-sm btn-block" type="button">Simulation</button>
+                        <details class="dropdown details-reset details-overlay d-inline-block">
+                            <summary class="btn" aria-haspopup="true">
+                                Simulate trip
+                                <div class="dropdown-caret"></div>
+                            </summary>
+                            <ul class="dropdown-menu dropdown-menu-sw">
+                                <li><a class="dropdown-item" href="#" id="onRouteButton">On Route</a></li>
+                                <li><a class="dropdown-item" href="#" id="offRouteButton">Off Route</a></li>
+                            </ul>
+                        </details>
                     </div>
                 </div>
                 <div class="position-absolute bottom-0 right-0 mb-7 mr-2">
@@ -154,7 +163,7 @@
     <script type="text/javascript">
         var key = 'Ar6eHNUXk2Llf5e09ghWzMpilyvbxJMKn9spC6ZTUV06f8E12xhzSuJCh3ONjqZY';
 
-        var isSidebarOpen = false;
+        var isSidebarOpen = false, simulation = false;
 
         var map, routes = [];
         var heatmapLayers = [], polylineLayer, originPushpin, destinationPushpin;
@@ -168,7 +177,8 @@
         var directionsContainer = document.getElementById('directionsContainer');
         var submitButton = document.getElementById('submitButton');
         var showClustersCheckbox = document.getElementById('showClustersCheckbox');
-        var simulationButton = document.getElementById('simulationButton');
+        var onRouteButton = document.getElementById('onRouteButton');
+        var offRouteButton = document.getElementById('offRouteButton');
         var toast = document.getElementById('toast');
 
         originInput.addEventListener('keyup', debounce(onKeyup, 500));
@@ -176,11 +186,18 @@
         directionsForm.addEventListener('submit', onSubmit);
         menuButton.addEventListener('click', toggleSidebar);
         showClustersCheckbox.addEventListener('click', toggleClusters);
-        simulationButton.addEventListener('click', simulateDriving);
+        onRouteButton.addEventListener('click', function () {
+            simulateTrip('on-route');
+        });
+        offRouteButton.addEventListener('click', function () {
+            simulateTrip('off-route');
+        });
 
         function GetMap() {
             map = new Microsoft.Maps.Map('#mapView', {
                 credentials: key,
+                enableHighDpi: true,
+                mapTypeId: Microsoft.Maps.MapTypeId.grayscale,
                 showLocateMeButton: false,
                 showMapTypeSelector: false,
                 showZoomButtons: false
@@ -494,13 +511,18 @@
             }
         }
 
-        function simulateDriving() {
-            if (routes.length == 0) return;
+        function simulateTrip(mode) {
+            if (routes.length == 0 || simulation) return;
 
-            simulationButton.disabled = true;
+            simulation = true;
 
-            var randRouteIdx = Math.floor(Math.random() * routes.length);
-            var points = routes[randRouteIdx].waypoints;
+            var points;
+            if (mode == 'on-route') {
+                points = routes[0].waypoints;
+            } else {
+                var randRouteIdx = Math.floor(Math.random() * (routes.length - 1)) + 1;
+                points = routes[randRouteIdx].waypoints;
+            }
 
             var taxi = createPushpin(points[0], {
                 icon: taxiIcon.icon,
@@ -528,7 +550,7 @@
 
             setTimeout(function () {
                 map.entities.remove(taxi);
-                simulationButton.disabled = false;
+                simulation = false;
             }, points.length * 100);
         }
 
