@@ -152,7 +152,7 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
     <script type="text/javascript">
-        var key = 'Ar6eHNUXk2Llf5e09ghWzMpilyvbxJMKn9spC6ZTUV06f8E12xhzSuJCh3ONjqZY'
+        var key = 'Ar6eHNUXk2Llf5e09ghWzMpilyvbxJMKn9spC6ZTUV06f8E12xhzSuJCh3ONjqZY';
 
         var isSidebarOpen = false;
 
@@ -225,13 +225,13 @@
                 timeout = setTimeout(later, wait);
                 if (callNow) func.apply(context, args);
             };
-        };
+        }
 
         function onKeyup(e) {
             var prefix = e.target.value;
             var inputEl = e.target;
 
-            var url = 'https://dev.virtualearth.net/REST/v1/Autosuggest'
+            var url = 'https://dev.virtualearth.net/REST/v1/Autosuggest';
             axios.get(url, {
                 params: {
                     query: prefix,
@@ -242,7 +242,7 @@
                 var suggestions = response.data.resourceSets[0].resources[0].value;
                 // console.log('Autosuggest', suggestions);
                 renderSuggestions(suggestions, inputEl);
-            })
+            });
         }
 
         function renderSuggestions(suggestions, inputEl) {
@@ -275,7 +275,7 @@
 
             toggleLoading(true);
 
-            var url = '/route'
+            var url = '/route';
             axios.post(url, {
                 src: originInput.value,
                 dst: destinationInput.value,
@@ -499,15 +499,8 @@
 
             simulationButton.disabled = true;
 
-            var points;
-
-            var randNum = Math.floor(Math.random() * 3);
-            if (randNum > 0) {
-                var randRouteIdx = Math.floor(Math.random() * (routes.length - 1)) + 1;
-                points = routes[randRouteIdx].waypoints;
-            } else {
-                points = routes[0].waypoints;
-            }
+            var randRouteIdx = Math.floor(Math.random() * routes.length);
+            var points = routes[randRouteIdx].waypoints;
 
             var taxi = createPushpin(points[0], {
                 icon: taxiIcon.icon,
@@ -561,7 +554,7 @@
             resultsContainer.innerHTML = '';
             polylineLayer.clear();
 
-            var url = 'https://dev.virtualearth.net/REST/v1/Locations'
+            var url = 'https://dev.virtualearth.net/REST/v1/Locations';
             axios.get(url, {
                 params: {
                     query: address,
@@ -575,7 +568,7 @@
                 if (inputEl.id === destinationInput.id) {
                     setDestinationPushpin(point);
                 }
-            })
+            });
         }
 
         function setOriginPushpin(point) {
