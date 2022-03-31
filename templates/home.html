@@ -181,8 +181,8 @@
                         </label>
                     </div>
                     <div class="mt-2">
-                        <details class="dropdown details-reset details-overlay d-inline-block">
-                            <summary class="btn btn-sm" aria-haspopup="true">
+                        <details id="simulationDropdown" class="dropdown details-reset details-overlay d-block">
+                            <summary class="btn btn-sm btn-block" aria-haspopup="true">
                                 Simulate trip
                                 <div class="dropdown-caret"></div>
                             </summary>
@@ -231,6 +231,7 @@
         var onRouteButton = document.getElementById('onRouteButton');
         var offRouteButton = document.getElementById('offRouteButton');
         var toast = document.getElementById('toast');
+        var simulationDropdown = document.getElementById('simulationDropdown');
 
         originInput.addEventListener('keyup', debounce(onKeyup, 500));
         destinationInput.addEventListener('keyup', debounce(onKeyup, 500));
@@ -567,6 +568,8 @@
         }
 
         function simulateTrip(mode) {
+            simulationDropdown.removeAttribute('open');
+
             if (routes.length == 0 || simulation) return;
 
             simulation = true;
