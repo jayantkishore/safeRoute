@@ -5,7 +5,7 @@
 <html>
 
 <head>
-    <title>SafeHer</title>
+    <title>Safe Route</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
     <link rel="icon" type="image/x-icon" href="{% static 'safe.png' %}">
@@ -21,6 +21,14 @@
             height: 100%;
         }
 
+        .Header {
+            box-shadow: rgba(0, 0, 0, 0.1) 0px 3px 5px;
+        }
+
+        #menuButton:hover {
+            fill: var(--color-icon-info);
+        }
+
         #directionsContainer {
             width: 0;
             transition: width 0.3s ease 0s;
@@ -30,26 +38,58 @@
             width: 24rem;
         }
 
-        .suggestion-list-item,
-        .route-list-item,
-        #menuButton {
-            cursor: pointer;
+        #directionsForm {
+            box-shadow: rgba(0, 0, 0, 0.04) 0px 3px 5px;
+        }
+
+        #originInput,
+        #destinationInput {
+            box-shadow: rgba(0, 0, 0, 0.06) 0px 2px 4px 0px inset;
+        }
+
+        #submitButton {
+            background-color: #43a896;
+            box-shadow: rgba(0, 0, 0, 0.1) 0px 3px 5px;
+            transition: all 0.2s ease 0s;
+        }
+
+        #submitButton:hover {
+            filter: contrast(0.9);
         }
 
         .suggestion-list-item:hover {
             background-color: var(--color-state-hover-secondary-bg);
         }
 
-        .route-list-item.selected {
-            background-color: #dcecf8;
+        .route-list-item {
+            transition: all 0.2s ease 0s;
         }
 
-        #menuButton:hover {
-            fill: var(--color-icon-info);
+        .route-list-item.selected {
+            background-color: #dcecf8;
+            box-shadow: rgba(0, 0, 0, 0.05) 0px 3px 5px;
+        }
+
+        .route-list-item .route-duration {
+            border-left: 3px solid var(--color-fade-black-10);
+        }
+
+        .route-list-item.selected .route-duration {
+            border-left: 3px solid #43a896;
         }
 
         #resultsContainer {
-            height: calc(100vh - 48px - 174px - 30px);
+            height: calc(100vh - 48px - 174px);
+        }
+
+        .Toast--error {
+            box-shadow: rgba(0, 0, 0, 0.1) 0px 3px 5px;
+        }
+
+        #menuButton,
+        .suggestion-list-item,
+        .route-list-item {
+            cursor: pointer;
         }
     </style>
 </head>
@@ -67,8 +107,8 @@
             </div>
             <div class="Header-item">
                 <a href="#" class="Header-link f4 d-flex flex-items-center">
-                    <img width="32" height="32" src="{% static 'safe.png' %}" alt="Logo" />
-                    <span>SafeHer</span>
+                    <img width="32" height="32" src="{% static 'safe.png' %}" alt="Logo" class="mr-1" />
+                    <span>Safe Route</span>
                 </a>
             </div>
         </div>
@@ -76,53 +116,64 @@
             <div id="directionsContainer" class="d-flex flex-column overflow-hidden">
                 <form id="directionsForm" class="px-4 py-3 border-bottom">
                     <div class="form-group">
-                        <div class="form-group-body d-flex flex-items-center flex-nowrap">
-                            <div class="mr-2 d-flex">
-                                <svg width="24" height="24" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"
-                                    xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img"
-                                    class="iconify iconify--emojione" preserveAspectRatio="xMidYMid meet">
-                                    <path
-                                        d="M62 52c0 5.5-4.5 10-10 10H12C6.5 62 2 57.5 2 52V12C2 6.5 6.5 2 12 2h40c5.5 0 10 4.5 10 10v40z"
-                                        fill="#2ea44f"></path>
-                                    <path
-                                        d="M41.7 46H47L35 14h-6L17 46h5.3l4.2-11.2h11.1L41.7 46zM28.3 30l3.7-9.9l3.7 9.9h-7.4z"
-                                        fill="#fff"></path>
+                        <div class="form-group-body d-flex flex-nowrap">
+                            <div class="d-flex flex-items-center flex-justify-center"
+                                style="background-color: #000000; min-width: 32px; height: 32px;">
+                                <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                    viewBox="0 0 200.000000 200.000000" preserveAspectRatio="xMidYMid meet">
+                                    <rect width="100%" height="100%" fill="#ffffff" />
+                                    <g transform="translate(0.000000,200.000000) scale(0.100000,-0.100000)"
+                                        fill="#000000" stroke="none">
+                                        <path d="M0 1000 l0 -1000 1000 0 1000 0 0 1000 0 1000 -1000 0 -1000 0 0
+                               -1000z m1341 -5 c144 -374 261 -684 262 -688 3 -11 -173 -11 -183 0 -4 4 -33
+                               80 -65 168 -32 88 -60 166 -63 173 -3 10 -68 12 -294 10 l-290 -3 -62 -172
+                               c-34 -95 -66 -176 -71 -180 -6 -5 -49 -6 -96 -3 l-86 5 256 670 c141 369 260
+                               678 264 688 6 15 18 17 88 15 l80 -3 260 -680z" />
+                                        <path d="M990 1442 c0 -6 -48 -143 -106 -304 -59 -161 -109 -301 -112 -310 -4
+                               -17 12 -18 228 -18 181 0 231 3 228 13 -62 176 -224 615 -230 622 -5 5 -8 4
+                               -8 -3z" />
+                                    </g>
                                 </svg>
                             </div>
-                            <input class="form-control input-block" type="text" id="originInput" placeholder="From"
-                                required />
+                            <input class="form-control input-block rounded-0 mr-0" type="text" id="originInput"
+                                placeholder="From" required />
                         </div>
                     </div>
                     <div class="form-group">
-                        <div class="form-group-body d-flex flex-items-center flex-nowrap">
-                            <div class="mr-2 d-flex">
-                                <svg width="24" height="24" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"
-                                    xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img"
-                                    class="iconify iconify--emojione" preserveAspectRatio="xMidYMid meet">
-                                    <path
-                                        d="M62 52c0 5.5-4.5 10-10 10H12C6.5 62 2 57.5 2 52V12C2 6.5 6.5 2 12 2h40c5.5 0 10 4.5 10 10v40z"
-                                        fill="#d73a49"></path>
-                                    <path
-                                        d="M43 25.3c0-5.1-4.2-9.2-9.4-9.2L21 16v32h12.6c5.2 0 9.4-4.1 9.4-9.2c0-2.6-1.1-5-3-6.7c1.9-1.8 3-4.2 3-6.8m-9.4 17.6h-7.7v-8.4h7.7c2.4 0 4.3 1.9 4.3 4.2s-1.9 4.2-4.3 4.2m0-13.4h-7.7v-8.4h7.7c2.4 0 4.3 1.9 4.3 4.2c0 2.3-1.9 4.2-4.3 4.2"
-                                        fill="#fff"></path>
+                        <div class="form-group-body d-flex flex-nowrap">
+                            <div class="d-flex flex-items-center flex-justify-center"
+                                style="background-color: #000000; min-width: 32px; height: 32px;">
+                                <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                    viewBox="0 0 200.000000 200.000000" preserveAspectRatio="xMidYMid meet">
+                                    <rect width="100%" height="100%" fill="#ffffff" />
+                                    <g transform="translate(0.000000,200.000000) scale(0.100000,-0.100000)"
+                                        fill="#000000" stroke="none">
+                                        <path d="M0 1000 l0 -1000 1000 0 1000 0 0 1000 0 1000 -1000 0 -1000 0 0
+                               -1000z m1146 671 c145 -28 253 -105 288 -206 26 -77 31 -171 12 -236 -18 -63
+                               -77 -137 -142 -179 l-42 -26 50 -23 c142 -65 211 -221 175 -394 -19 -91 -59
+                               -161 -121 -211 -106 -86 -156 -95 -516 -96 l-295 -1 -3 690 -2 691 274 0 c150
+                               0 295 -4 322 -9z" />
+                                        <path d="M740 1310 l0 -220 155 0 c84 0 177 5 204 11 105 22 173 103 174 208
+                               0 77 -17 123 -62 164 -52 47 -106 57 -306 57 l-165 0 0 -220z" />
+                                        <path d="M740 693 l0 -248 202 5 c184 5 207 7 244 27 85 46 124 115 124 224 0
+                               100 -38 172 -113 212 -39 20 -57 22 -249 25 l-208 3 0 -248z" />
+                                    </g>
                                 </svg>
                             </div>
-                            <input class="form-control input-block" type="text" id="destinationInput" placeholder="To"
-                                required />
+                            <input class="form-control input-block rounded-0 mr-0" type="text" id="destinationInput"
+                                placeholder="To" required />
                         </div>
                     </div>
                     <div class="form-actions">
-                        <button id="submitButton" class="btn btn-primary" type="submit">Go</button>
+                        <button id="submitButton" class="btn btn-primary rounded-0" type="submit">Go</button>
                     </div>
                 </form>
                 <div id="resultsContainer" class="overflow-y-auto"></div>
-                <div class="px-2 py-1 border-top text-center text-bold" style="max-height: 30px;">
-                    Developed with ☕ by Team SIGABRT</div>
             </div>
             <div class="flex-1 position-relative color-bg-primary">
                 <div id="mapView"></div>
                 <div class="position-absolute top-0 right-0 px-3 py-2"
-                    style="background-color: var(--color-fade-white-85);">
+                    style="background-color: var(--color-fade-white-85); box-shadow: rgba(0, 0, 0, 0.1) 0px 3px 5px;">
                     <div class="form-checkbox m-0 pl-4">
                         <label style="cursor: pointer;">
                             <input id="showClustersCheckbox" type="checkbox" />
@@ -131,27 +182,27 @@
                     </div>
                     <div class="mt-2">
                         <details class="dropdown details-reset details-overlay d-inline-block">
-                            <summary class="btn" aria-haspopup="true">
+                            <summary class="btn btn-sm" aria-haspopup="true">
                                 Simulate trip
                                 <div class="dropdown-caret"></div>
                             </summary>
-                            <ul class="dropdown-menu dropdown-menu-sw">
-                                <li><a class="dropdown-item" href="#" id="onRouteButton">On Route</a></li>
-                                <li><a class="dropdown-item" href="#" id="offRouteButton">Off Route</a></li>
+                            <ul class="dropdown-menu dropdown-menu-sw f6 rounded-0 p-0">
+                                <li><a class="dropdown-item" href="#" id="onRouteButton">On-route</a></li>
+                                <li><a class="dropdown-item" href="#" id="offRouteButton">Off-route</a></li>
                             </ul>
                         </details>
                     </div>
                 </div>
                 <div class="position-absolute bottom-0 right-0 mb-7 mr-2">
-                    <div id="toast" class="Toast Toast--error Toast--animateOut">
+                    <div id="toast" class="Toast Toast--error Toast--animateOut rounded-0">
                         <span class="Toast-icon">
-                            <svg width="20" height="20" viewBox="0 0 14 16" class="octicon octicon-stop"
+                            <svg width="16" height="16" viewBox="0 0 14 16" class="octicon octicon-stop"
                                 aria-hidden="true">
                                 <path fill-rule="evenodd"
                                     d="M10 1H4L0 5v6l4 4h6l4-4V5l-4-4zm3 9.5L9.5 14h-5L1 10.5v-5L4.5 2h5L13 5.5v5zM6 4h2v5H6V4zm0 6h2v2H6v-2z" />
                             </svg>
                         </span>
-                        <span class="Toast-content f4 text-bold">You are off route.</span>
+                        <span class="Toast-content text-bold">You are off-route.</span>
                     </div>
                 </div>
             </div>
@@ -196,6 +247,12 @@
         function GetMap() {
             map = new Microsoft.Maps.Map('#mapView', {
                 credentials: key,
+                customMapStyle: {
+                    elements: {
+                        water: { fillColor: "#b3e1ed" },
+                    }
+                    // aaba85
+                },
                 enableHighDpi: true,
                 mapTypeId: Microsoft.Maps.MapTypeId.grayscale,
                 showLocateMeButton: false,
@@ -216,16 +273,16 @@
             map.layers.insert(polylineLayer);
 
             originIcon = {
-                icon: '<svg width="24" height="24" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--emojione" preserveAspectRatio="xMidYMid meet"><path d="M62 52c0 5.5-4.5 10-10 10H12C6.5 62 2 57.5 2 52V12C2 6.5 6.5 2 12 2h40c5.5 0 10 4.5 10 10v40z" fill="#2ea44f"></path><path d="M41.7 46H47L35 14h-6L17 46h5.3l4.2-11.2h11.1L41.7 46zM28.3 30l3.7-9.9l3.7 9.9h-7.4z" fill="#fff"></path></svg>',
-                anchor: new Microsoft.Maps.Point(12, 12)
+                icon: '<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 200.000000 200.000000" preserveAspectRatio="xMidYMid meet"><rect width="100%" height="100%" fill="#ffffff"/><g transform="translate(0.000000,200.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none"><path d="M0 1000 l0 -1000 1000 0 1000 0 0 1000 0 1000 -1000 0 -1000 0 0 -1000z m1341 -5 c144 -374 261 -684 262 -688 3 -11 -173 -11 -183 0 -4 4 -33 80 -65 168 -32 88 -60 166 -63 173 -3 10 -68 12 -294 10 l-290 -3 -62 -172 c-34 -95 -66 -176 -71 -180 -6 -5 -49 -6 -96 -3 l-86 5 256 670 c141 369 260 678 264 688 6 15 18 17 88 15 l80 -3 260 -680z"/><path d="M990 1442 c0 -6 -48 -143 -106 -304 -59 -161 -109 -301 -112 -310 -4 -17 12 -18 228 -18 181 0 231 3 228 13 -62 176 -224 615 -230 622 -5 5 -8 4 -8 -3z"/></g></svg>',
+                anchor: new Microsoft.Maps.Point(10, 10)
             };
             destinationIcon = {
-                icon: '<svg width="24" height="24" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--emojione" preserveAspectRatio="xMidYMid meet"><path d="M62 52c0 5.5-4.5 10-10 10H12C6.5 62 2 57.5 2 52V12C2 6.5 6.5 2 12 2h40c5.5 0 10 4.5 10 10v40z" fill="#d73a49"></path><path d="M43 25.3c0-5.1-4.2-9.2-9.4-9.2L21 16v32h12.6c5.2 0 9.4-4.1 9.4-9.2c0-2.6-1.1-5-3-6.7c1.9-1.8 3-4.2 3-6.8m-9.4 17.6h-7.7v-8.4h7.7c2.4 0 4.3 1.9 4.3 4.2s-1.9 4.2-4.3 4.2m0-13.4h-7.7v-8.4h7.7c2.4 0 4.3 1.9 4.3 4.2c0 2.3-1.9 4.2-4.3 4.2" fill="#fff"></path></svg>',
-                anchor: new Microsoft.Maps.Point(12, 12)
+                icon: '<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 200.000000 200.000000" preserveAspectRatio="xMidYMid meet"><rect width="100%" height="100%" fill="#ffffff"/><g transform="translate(0.000000,200.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none"><path d="M0 1000 l0 -1000 1000 0 1000 0 0 1000 0 1000 -1000 0 -1000 0 0 -1000z m1146 671 c145 -28 253 -105 288 -206 26 -77 31 -171 12 -236 -18 -63 -77 -137 -142 -179 l-42 -26 50 -23 c142 -65 211 -221 175 -394 -19 -91 -59 -161 -121 -211 -106 -86 -156 -95 -516 -96 l-295 -1 -3 690 -2 691 274 0 c150 0 295 -4 322 -9z"/><path d="M740 1310 l0 -220 155 0 c84 0 177 5 204 11 105 22 173 103 174 208 0 77 -17 123 -62 164 -52 47 -106 57 -306 57 l-165 0 0 -220z"/><path d="M740 693 l0 -248 202 5 c184 5 207 7 244 27 85 46 124 115 124 224 0 100 -38 172 -113 212 -39 20 -57 22 -249 25 l-208 3 0 -248z"/></g></svg>',
+                anchor: new Microsoft.Maps.Point(10, 10)
             };
             taxiIcon = {
-                icon: '<svg width="32" height="32" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg"><g><title>Layer 1</title><ellipse stroke-width="5" ry="40" rx="40" id="svg_1" cy="45" cx="45" stroke="#36a8ff" fill="#ffffff"/><g><g fill="#ffe62e"><path d="m71.2,40.1s-1.9,2.1 -1.9,3.8l-0.9,-4.3l2.8,0.5"/><path d="m70.3,36.9s2.7,-0.5 3.8,0.5c0.6,0.6 0.9,2.3 0.9,2.3c0,1 -0.8,1.8 -1.9,1.8l-2.8,0c-1,0 -1.9,-0.8 -1.9,-1.8l0,-0.9c0,-1.1 0.9,-1.9 1.9,-1.9"/><path d="m18.8,40.1s1.9,2.1 1.9,3.8l0.9,-4.3l-2.8,0.5"/><path d="m19.7,36.9s-2.7,-0.5 -3.8,0.5c-0.6,0.6 -0.9,2.3 -0.9,2.3c0,1 0.8,1.8 1.9,1.8l2.8,0c1,0 1.9,-0.8 1.9,-1.8l0,-0.9c0,-1.1 -0.9,-1.9 -1.9,-1.9"/></g><path fill="#b2c1c0" d="m53.4,18.5l-16.8,0c-0.5,0 -0.9,0.4 -0.9,0.9l0,1.9c0,0.5 0.4,0.9 0.9,0.9l16.9,0c0.5,0 0.9,-0.4 0.9,-0.9l0,-1.9c0,-0.5 -0.4,-0.9 -1,-0.9"/><g fill="#3e4347"><path d="m71.2,69.1c0,1 -0.8,1.9 -1.9,1.9l-7.5,0c-1,0 -1.9,-0.8 -1.9,-1.9l0,-7.5c0,-1 0.8,-1.9 1.9,-1.9l7.5,0c1,0 1.9,0.8 1.9,1.9l0,7.5"/><path d="m30,69.1c0,1 -0.8,1.9 -1.9,1.9l-7.5,0c-1,0 -1.9,-0.8 -1.9,-1.9l0,-7.5c0,-1 0.8,-1.9 1.9,-1.9l7.5,0c1,0 1.9,0.8 1.9,1.9l0,7.5"/></g><g fill="#ffe62e"><path d="m73.8,51c-1.5,-4.6 -4.1,-7.9 -4.1,-7.9c-5.8,0 -7.2,-7.7 -7.2,-7.7l-35,0s-1.4,7.7 -7.2,7.7c0,0 -2.6,3.4 -4.1,7.9c-0.6,1.8 -0.2,5.9 0,7.8c0.1,1 0.3,3.3 3.5,3.5c6.4,0.4 10.2,1.2 25.4,1.2c15.3,0 18.8,-0.8 25.1,-1.2c3.2,-0.2 3.4,-2.5 3.5,-3.5c0.2,-1.9 0.7,-6 0.1,-7.8"/><path d="m65,25.8c-1.6,-3.3 -3.5,-4 -5.9,-4.4c-3.4,-0.6 -7.1,-0.9 -14.1,-0.9c-7.1,0 -10.7,0.3 -14.1,0.9c-2.4,0.4 -4.3,1.2 -5.9,4.4c-1.9,3.8 -4.4,16.2 -4.4,18.1c0,2 2.1,2.7 4.7,2.7l39.4,0c2.5,0 4.7,-0.7 4.7,-2.7c0,-1.9 -2.5,-14.3 -4.4,-18.1"/></g><path fill="#b2c1c0" d="m29.9,45.7c-0.5,3.1 -3.4,5.6 -6.5,5.6s-5.1,-2.5 -4.6,-5.6c0.5,-3.1 3.4,-5.6 6.5,-5.6s5.1,2.5 4.6,5.6"/><path fill="#fff" d="m28.1,45.7c-0.4,2.1 -2.3,3.8 -4.3,3.8s-3.4,-1.7 -3.1,-3.8c0.3,-2.1 2.3,-3.8 4.3,-3.8c2.1,0 3.4,1.7 3.1,3.8"/><path fill="#3e4347" d="m60.9,24.5c-1,-0.7 -8.3,-1.8 -15.9,-1.8s-15,1.1 -15.9,1.8c-3.7,2.5 -4.7,14.2 -4.7,14.2s1.9,0.9 4.7,0.9c2.2,0 2.8,-1.4 15.9,-1.4s13.7,1.4 15.9,1.4c2.8,0 4.7,-0.9 4.7,-0.9s-1,-11.7 -4.7,-14.2"/><path fill="#b2c1c0" d="m60.1,45.7c0.5,3.1 3.4,5.6 6.5,5.6s5.1,-2.5 4.6,-5.6c-0.5,-3.1 -3.4,-5.6 -6.5,-5.6s-5.1,2.5 -4.6,5.6"/><path fill="#fff" d="m61.9,45.7c0.3,2.1 2.3,3.8 4.3,3.8s3.4,-1.7 3.1,-3.8c-0.3,-2.1 -2.3,-3.8 -4.3,-3.8c-2.1,0 -3.4,1.7 -3.1,3.8"/><path fill="#3e4347" d="m57.7,59.8l-25.3,0c-1,0 -0.2,-1.9 0.6,-2.3c4.4,-2.1 19.4,-1.8 24,0c0.9,0.3 1.7,2.3 0.7,2.3"/><g fill="#fff"><circle r="2.8" cy="56.9" cx="67.5"/><circle r="2.8" cy="56.9" cx="22.5"/></g><g fill="#f15744"><circle r="1.9" cy="56.9" cx="22.5"/><circle r="1.9" cy="56.9" cx="67.5"/></g><path fill="#ffe62e" d="m52.5,11l-15,0c-0.5,0 -0.9,0.4 -0.9,0.9l0,6.6l16.9,0l0,-6.6c-0.1,-0.5 -0.5,-0.9 -1,-0.9"/><path fill="#e8e8e8" d="m54.1,48.7c-0.5,-1.6 -2.4,-3.6 -4,-3.9c-2.5,-0.5 -7.7,-0.5 -10.2,0c-1.7,0.3 -3.5,2.3 -4,3.9l-0.1,0.3c-0.5,1.6 0.4,2.9 2.1,2.9l14.3,0c1.7,0 2.6,-1.3 2.1,-2.9l-0.2,-0.3"/><path fill="#62727a" d="m45,45.8c-1.9,0 -3.7,0.1 -4.8,0.3c-1,0.2 -2.5,1.7 -3,3l-0.1,0.3c-0.1,0.3 -0.1,0.6 0,0.8c0.1,0.2 0.4,0.3 0.7,0.3l14.3,0c0.3,0 0.6,-0.1 0.7,-0.3c0.1,-0.2 0.1,-0.5 0,-0.8l-0.1,-0.3c-0.4,-1.3 -1.9,-2.8 -3,-3c-1,-0.1 -2.8,-0.3 -4.7,-0.3"/><g fill="#e8e8e8"><path d="m38.7,47.7l12.6,0c-0.4,-0.4 -0.8,-0.8 -1.2,-0.9l-10.2,0c-0.4,0.2 -0.8,0.5 -1.2,0.9"/><path d="m37.7,49.3l-0.1,0.3l14.9,0l-0.1,-0.3c-0.1,-0.2 -0.2,-0.4 -0.3,-0.7l-14.1,0c-0.2,0.3 -0.3,0.5 -0.3,0.7"/></g><g fill="#62727a"><path d="m39.5,14.1c0,-0.3 -0.2,-0.5 -0.5,-0.5l-0.1,0c-0.3,0 -0.5,-0.2 -0.5,-0.4s0.2,-0.4 0.5,-0.4l2.1,0c0.3,0 0.5,0.2 0.5,0.4s-0.2,0.4 -0.5,0.4l-0.1,0c-0.3,0 -0.5,0.2 -0.5,0.5l0,2.1c0,0.3 -0.2,0.5 -0.5,0.5s-0.5,-0.2 -0.5,-0.5l0,-2.1l0.1,0z"/><path d="m43.5,15.7c-0.3,0 -0.5,0.2 -0.6,0.4l0,0.1c-0.1,0.2 -0.3,0.4 -0.6,0.4s-0.4,-0.2 -0.3,-0.4l0.9,-2.9c0.1,-0.2 0.4,-0.4 0.6,-0.4l0.2,0c0.3,0 0.5,0.2 0.6,0.4l0.9,2.9c0.1,0.2 -0.1,0.4 -0.3,0.4c-0.3,0 -0.5,-0.2 -0.6,-0.4l0,-0.1c-0.1,-0.2 -0.4,-0.4 -0.6,-0.4l-0.2,0m0.1,-0.7c0.2,0 0.4,-0.2 0.3,-0.4c-0.1,-0.2 -0.2,-0.6 -0.3,-0.8c0,0 0,-0.1 -0.1,-0.3c0,0 -0.1,0.2 -0.1,0.5c0,0 0,0.1 -0.1,0.3l-0.1,0.3c0.1,0.2 0.2,0.4 0.4,0.4"/><path d="m49,16.6c-0.3,0 -0.5,-0.2 -0.6,-0.3c-0.1,-0.2 -0.3,-0.5 -0.4,-0.8l-0.1,-0.3l-0.2,0.4l-0.1,0.3l-0.1,0.3c-0.1,0.2 -0.4,0.4 -0.7,0.4l-0.1,0c-0.3,0 -0.4,-0.2 -0.2,-0.4l0.7,-1.1c0.1,-0.2 0.1,-0.6 0,-0.8l-0.6,-1c-0.1,-0.2 0,-0.4 0.2,-0.4l0.1,0c0.3,0 0.5,0.2 0.6,0.3s0.3,0.5 0.4,0.8l0.1,0.2l0.2,-0.4l0.1,-0.2l0.1,-0.3c0.1,-0.2 0.4,-0.4 0.7,-0.4l0.1,0c0.3,0 0.4,0.2 0.2,0.4l-0.6,1c-0.1,0.2 -0.1,0.6 0,0.8l0.7,1.1c0,0.2 -0.1,0.4 -0.5,0.4"/><path d="m51.1,12.9c0.2,0 0.5,0.2 0.5,0.5l0,2.8c0,0.3 -0.2,0.5 -0.5,0.5s-0.5,-0.2 -0.5,-0.5l0,-2.9c0.1,-0.2 0.3,-0.4 0.5,-0.4"/></g></g></g></svg>',
-                anchor: new Microsoft.Maps.Point(16, 16)
+                icon: '<svg width="80" height="80" version="1.1" viewBox="0 0 752 752" xmlns="http://www.w3.org/2000/svg"><rect x="287.5" y="250" width="175" height="137.5" fill="#ffffff"/><g><path d="m332.15 329.82c-9.7148-0.074218-28.363 0.1875-28.363 0.1875s-1.0938 6.5508-0.59766 8.5586c1.2422 5.0234 8.7227 3.9844 11.812 4.0977 7.3633 0.26562 24.086-0.17969 24.086-0.17969s-0.46094-3.1172-0.53125-5.8398c-0.17969-6.8945-4.0625-6.8047-6.4062-6.8242z"/><path d="m375.9 308.11c25.797 0 51.832 3.4258 65.211 1.9414-6.0195-13.781-14.391-24.566-19.473-29.652-3.6758-3.6719-20.945-7.5664-45.734-7.5664-24.793 0-42.074 3.9023-45.734 7.5664-5.082 5.0859-13.461 15.875-19.484 29.652 13.371 1.4844 39.418-1.9414 65.215-1.9414z"/><path d="m375.79 326.75c-13.203-0.11328-30.246 1.1328-31.941 2.5117-3.0938 2.5156-0.96484 15.336 6.0352 15.336h23.363 5.0977 23.363c7 0 9.125-12.82 6.0352-15.336-1.7109-1.3828-18.75-2.6289-31.953-2.5117z"/><path d="m419.86 329.82c-2.3398 0.019532-6.2266-0.074218-6.4141 6.8242-0.070312 2.7227-0.53125 5.8398-0.53125 5.8398s16.723 0.44531 24.086 0.17969c3.0859-0.11328 10.57 0.92969 11.812-4.0977 0.49609-2.0078-0.59766-8.5586-0.59766-8.5586 0.003906 0.003906-18.637-0.26172-28.355-0.1875z"/><path d="m376 198.93c-71.121 0-128.78 57.652-128.78 128.78 0 105.34 128.78 225.36 128.78 225.36s128.78-116.43 128.78-225.35c0-71.125-57.656-128.79-128.78-128.79zm82.082 102.17c0 1.7344-1.3789 3.3984-3.0742 3.7227l-8.7344 1.6641c7.3516 16.418 11.672 36.836 4.8633 57.281l0.007812 12.16c0 3.4648-0.88281 6.2695-1.9609 6.2695h-16.07c-1.0664 0-1.957-2.8047-1.957-6.2695v-9.8984c-14.379 1.3594-35.008 2.8398-55.273 2.8398-20.453 0-40.855-1.5078-55.266-2.8789v9.9297c0 3.4648-0.88281 6.2695-1.9609 6.2695h-16.07c-1.0859 0-1.9609-2.8047-1.9609-6.2695v-12.16c-6.8242-20.453-2.4844-40.891 4.875-57.312l-8.5234-1.625c-1.6914-0.32812-3.0742-2-3.0742-3.7227v-6.3242c0-1.7227 1.4062-3.1367 3.1367-3.1367h14.062c0.75 0 1.3984 0.30469 1.9375 0.73438 4.4688-7.1172 9.0898-12.82 12.68-16.414 3.6367-3.6289 12.531-6.1992 23.629-7.7344v-12.684c9.5898-1.2227 19.266-1.5391 26.543-1.5391 7.3359 0 17.105 0.32031 26.766 1.5625v12.684c10.992 1.5352 19.801 4.1016 23.398 7.707 3.6133 3.6094 8.2539 9.3438 12.75 16.516 0.55078-0.50391 1.2734-0.83984 2.082-0.83984h14.062c1.7305 0 3.1367 1.4102 3.1211 3.1367l0.003907 6.332z"/></g></svg>',
+                anchor: new Microsoft.Maps.Point(40, 59)
             };
         }
 
@@ -318,7 +375,7 @@
                 var routeListItem = document.createElement('div');
                 routeListItem.className = 'route-list-item border-bottom d-flex flex-nowrap';
                 routeListItem.innerHTML = `
-                    <div class="px-3 py-2 text-center lh-condensed" style="background-color: var(--color-fade-black-10);">
+                    <div class="route-duration px-3 py-2 text-center lh-condensed" style="background-color: var(--color-fade-black-10);">
                         <div class="f3">
                             ${Math.round(route.duration / 60)}
                         </div>
@@ -375,10 +432,8 @@
                 });
 
             var polyline = new Microsoft.Maps.Polyline(locations, {
-                strokeColor: selected ? '#36a8ff' : '#edf7ff',
-                strokeThickness: 5,
-                secondaryStrokeColor: '#4499ff',
-                secondaryStrokeThickness: 7,
+                strokeColor: selected ? '#1e2a2d' : '#b1ccc3',
+                strokeThickness: 3,
             });
 
             polylineLayer.add(polyline);
