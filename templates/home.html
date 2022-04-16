@@ -212,7 +212,7 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
     <script type="text/javascript">
-        var key = 'Ar6eHNUXk2Llf5e09ghWzMpilyvbxJMKn9spC6ZTUV06f8E12xhzSuJCh3ONjqZY';
+        var bing_api_key = '**********************************';
 
         var isSidebarOpen = false, simulation = false;
 
@@ -247,7 +247,7 @@
 
         function GetMap() {
             map = new Microsoft.Maps.Map('#mapView', {
-                credentials: key,
+                credentials: bing_api_key,
                 customMapStyle: {
                     elements: {
                         water: { fillColor: "#b3e1ed" },
@@ -311,7 +311,7 @@
                 params: {
                     query: prefix,
                     userMapView: '37.703773,-122.520217,37.863681,-122.351646',
-                    key
+                    bing_api_key
                 }
             }).then(function (response) {
                 var suggestions = response.data.resourceSets[0].resources[0].value;
@@ -638,7 +638,7 @@
             axios.get(url, {
                 params: {
                     query: address,
-                    key
+                    bing_api_key
                 }
             }).then(function (response) {
                 var point = response.data.resourceSets[0].resources[0].point.coordinates;

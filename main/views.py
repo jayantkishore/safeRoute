@@ -20,7 +20,7 @@ class V1View(APIView):
         src = getCoordinates(src_addr)
         dst = getCoordinates(dst_addr)
 
-        HERE_API_KEY="GjDOz0a4Xv04xFVpe8ywIaw1DNQvIX3SJHCgSD3WMs0"
+        HERE_API_KEY = '**********************************'
         
         route_url="https://router.hereapi.com/v8/routes"
        
@@ -95,7 +95,7 @@ def getScore(waypoints):
     return sum(y_pred)
 def getCoordinates(addr):
     addr_url = 'http://dev.virtualearth.net/REST/v1/Locations'
-    BING_API_KEY = 'ApeJ9VF0hG73kt0lv0qLdSMAOUUNI3vn-SEMmrc7s6ywCKLjWEgeSA6EJW5ODb3k'
+    BING_API_KEY = '**********************************'
     params = {
         'query': addr,
         'maxResults': 1,
